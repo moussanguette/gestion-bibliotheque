@@ -25,7 +25,23 @@
               }
             ],
             "styles": [
-              "src/styles.css"
+              "src/styles.css",
+              "public/assets/css/bootstrap.min.css",
+              "public/assets/css/bootstrap-extended.css",
+              "public/assets/css/style.css"
+              
+            ],
+            "scripts": [
+              "public/assets/js/jquery.min.js",
+              "public/assets/js/bootstrap.bundle.min.js",
+              "public/assets/plugins/simplebar/js/simplebar.min.js",
+              "public/assets/plugins/perfect-scrollbar/js/perfect-scrollbar.js",
+              "public/assets/js/pace.min.js",
+              "public/assets/plugins/vectormap/jquery-jvectormap-2.0.2.min.js",
+              "public/assets/plugins/vectormap/jquery-jvectormap-world-mill-en.js",
+              "public/assets/plugins/apexcharts-bundle/js/apexcharts.min.js",
+              "public/assets/js/app.js",
+              "public/assets/js/index.js"
             ]
           },
           "configurations": {
@@ -81,8 +97,17 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.css"
+            "scripts": [
+              "public/assets/js/jquery.min.js",
+              "public/assets/js/bootstrap.bundle.min.js",
+              "public/assets/plugins/simplebar/js/simplebar.min.js",
+              "public/assets/plugins/perfect-scrollbar/js/perfect-scrollbar.js",
+              "public/assets/js/pace.min.js",
+              "public/assets/plugins/vectormap/jquery-jvectormap-2.0.2.min.js",
+              "public/assets/plugins/vectormap/jquery-jvectormap-world-mill-en.js",
+              "public/assets/plugins/apexcharts-bundle/js/apexcharts.min.js",
+              "public/assets/js/app.js",
+              "public/assets/js/index.js"
             ]
           }
         }
