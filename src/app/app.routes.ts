@@ -4,12 +4,14 @@ import { Home } from './home/home';
 import { Register } from './register/register';
 import { Livre } from './livre/livre';
 import { Admin } from './admin/admin';
+import { ListeLivre } from './liste-livre/liste-livre';
 
 export const routes: Routes = [
     { path: '', component: Home },
     { path: 'login', component: Login },
     { path: 'register', component: Register },
     { path: 'livre', component: Livre },
-    { path: 'adlin', component: Admin },
+    { path: 'admin', component: Admin },
+    { path: 'liste-livre', component: ListeLivre },
 
 ];
