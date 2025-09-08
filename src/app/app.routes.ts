@@ -5,6 +5,7 @@ import { Register } from './register/register';
 import { Livre } from './livre/livre';
 import { Admin } from './admin/admin';
 import { ListeLivre } from './liste-livre/liste-livre';
+import { AjouterLivre } from './ajouter-livre/ajouter-livre';
 
 export const routes: Routes = [
     { path: '', component: Home },
@@ -13,5 +14,6 @@ export const routes: Routes = [
     { path: 'livre', component: Livre },
     { path: 'admin', component: Admin },
     { path: 'liste-livre', component: ListeLivre },
+    { path: 'ajouter-livre', component: AjouterLivre },
 
 ];
