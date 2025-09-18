@@ -1,16 +1,25 @@
 import { Routes } from '@angular/router';
-
-import { HomeComponent } from './components/home/home.component';
-import { LoginComponent } from './components/login/login.component';
-import { RegisterComponent } from './components/register/register.component';
-import { AdminComponent } from './components/admin/admin.component';
-import { AjoutLivreComponent } from './components/ajout-livre/ajout-livre.component';
+import {
+  HomeComponent,
+  LoginComponent,
+  RegisterComponent,
+  AdminComponent,
+  AjoutLivreComponent,
+  DetailLivreComponent,
+  ProfilComponent,
+  ResetPasswordComponent
+} from './components';
+import { AuthGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
-    { path: '', component: HomeComponent },
+    { path: '', component: HomeComponent, canActivate: [AuthGuard] },
+    { path: 'home', component: HomeComponent, canActivate: [AuthGuard] },
     { path: 'login', component: LoginComponent },
     { path: 'register', component: RegisterComponent },
-    { path: 'admin', component: AdminComponent },
-    { path: 'ajouter-livre', component: AjoutLivreComponent },
-
+    { path: 'reset-password', component: ResetPasswordComponent },
+    { path: 'admin', component: AdminComponent, canActivate: [AuthGuard] },
+    { path: 'ajouter-livre', component: AjoutLivreComponent, canActivate: [AuthGuard] },
+    { path: 'detail-livre/:id', component: DetailLivreComponent, canActivate: [AuthGuard] },
+    { path: 'profil', component: ProfilComponent, canActivate: [AuthGuard] },
+    { path: '**', redirectTo: '/home' }
 ];
