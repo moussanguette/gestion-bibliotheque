@@ -5,7 +5,15 @@
   "projects": {
     "biblio-front": {
       "projectType": "application",
-      "schematics": {},
+      "schematics": {
+       
+        "@schematics/angular:component": {
+             "type": "component"
+        },
+        "@schematics/angular:service": {
+          "type": "service"
+        }
+      },
       "root": "",
       "sourceRoot": "src",
       "prefix": "app",
@@ -29,12 +37,15 @@
               "public/assets/css/bootstrap.min.css",
               "public/assets/css/bootstrap-extended.css",
               "public/assets/css/style.css"
-              
+
             ],
             "scripts": [
               "public/assets/js/jquery.min.js",
               "public/assets/js/bootstrap.bundle.min.js",
               "public/assets/plugins/simplebar/js/simplebar.min.js",
+              "public/assets/plugins/metismenu/js/metisMenu.min.js",
+              "public/assets/plugins/datatable/js/jquery.dataTables.min.js",
+              "public/assets/plugins/datatable/js/dataTables.bootstrap5.min.js",
               "public/assets/plugins/perfect-scrollbar/js/perfect-scrollbar.js",
               "public/assets/js/pace.min.js",
               "public/assets/plugins/vectormap/jquery-jvectormap-2.0.2.min.js",
@@ -113,5 +124,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "dabe4342-4527-4b28-a264-0d1347fd835b"
   }
 }

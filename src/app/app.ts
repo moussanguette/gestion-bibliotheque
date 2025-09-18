@@ -6,6 +6,7 @@ import { routes } from './app.routes';
   selector: 'app-root',
   imports: [
     RouterOutlet,
+
   ],
   templateUrl: './app.html',
   styleUrl: './app.css'

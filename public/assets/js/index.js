@@ -357,7 +357,9 @@ var options = {
      } );
 
 
-     new PerfectScrollbar(".new-customer-list")
+     if (document.querySelector(".new-customer-list")) {
+     	new PerfectScrollbar(".new-customer-list")
+     }
 
 
 
