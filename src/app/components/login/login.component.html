@@ -1,1 +1,64 @@
-<p>login works!</p>
+<div class="login-container">
+  <!-- Partie gauche : Formulaire -->
+  <div class="login-form">
+    <div class="logo">
+      <span class="logo-icon">|||</span>
+      <span class="logo-text">MBE TECH</span>
+    </div>
+    <p class="subtitle">Connectez-vous à votre compte</p>
+
+    <!-- Champ nom d'utilisateur -->
+    <div class="form-group">
+      <label>Nom d'utilisateur</label>
+      <div class="input-box">
+        <input type="text" placeholder="Votre nom d'utilisateur" [(ngModel)]="username" (input)="onUsernameInput()" (keydown.enter)="onLogin()" autocomplete="username" />
+        <span class="icon">👤</span>
+      </div>
+      <div class="error" *ngIf="usernameError">{{ usernameError }}</div>
+    </div>
+
+    <!-- Champ mot de passe -->
+    <div class="form-group">
+      <label>Mot de passe</label>
+      <div class="input-box">
+        <input
+          [type]="showPassword ? 'text' : 'password'"
+          placeholder="Entrez votre mot de passe"
+          [(ngModel)]="password"
+          (input)="onPasswordInput()"
+          (keydown.enter)="onLogin()"
+        />
+        <span class="icon">🔒</span>
+        <button type="button" class="toggle-password" (click)="togglePassword()" [attr.aria-label]="showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'" [title]="showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'">
+          <span class="icon-eye">{{ showPassword ? '🙈' : '👁️' }}</span>
+        </button>
+      </div>
+      <div class="error" *ngIf="passwordError">{{ passwordError }}</div>
+    </div>
+
+    <!-- Erreur globale de connexion -->
+    <div class="error global" *ngIf="loginError">{{ loginError }}</div>
+
+    <!-- Mot de passe oublié -->
+    <div class="forgot">
+      <a href="#" (click)="$event.preventDefault(); forgotPassword()">Mot de passe oublié ?</a>
+    </div>
+
+    <!-- Bouton Connexion -->
+    <button class="btn btn-login" (click)="onLogin()" [disabled]="isLoading">{{ isLoading ? 'Connexion…' : 'Se connecter' }}</button>
+
+    <!-- Indicateur de chargement -->
+    <div class="loading" *ngIf="isLoading">Veuillez patienter…</div>
+
+    <!-- OU -->
+    <div class="divider">OU</div>
+
+    <!-- Bouton Inscription -->
+    <button class="btn btn-signup" (click)="navigateToSignup()" [disabled]="isLoading">S'inscrire</button>
+  </div>
+
+  <!-- Partie droite : Illustration -->
+  <div class="login-illustration">
+    <img src="assets/images/login/login-illustrator.svg" alt="Illustration de connexion" />
+  </div>
+</div>
