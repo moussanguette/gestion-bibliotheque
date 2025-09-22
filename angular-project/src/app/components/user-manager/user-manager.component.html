@@ -1,0 +1,256 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-2xl font-bold">Gestion des utilisateurs</h2>
+      <p class="text-gray-600">Gérez les membres de votre bibliothèque</p>
+    </div>
+    <button
+      (click)="showAddForm = true"
+      class="btn-primary"
+    >
+      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+      </svg>
+      Nouvel utilisateur
+    </button>
+  </div>
+
+  <!-- Statistiques rapides -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="card hover:shadow-lg transition-all duration-200 border-l-4 border-blue-500">
+      <div class="card-content p-6">
+        <div class="flex items-center space-x-4">
+          <!-- Users Icon -->
+          <div class="p-3 bg-blue-100 rounded-lg">
+            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+            </svg>
+          </div>
+          <div>
+            <p class="text-sm text-gray-600 font-medium">Total membres</p>
+            <p class="text-3xl font-bold text-gray-900">{{users.length}}</p>
+            <p class="text-xs text-gray-500 mt-1">Utilisateurs inscrits</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card hover:shadow-lg transition-all duration-200 border-l-4 border-green-500">
+      <div class="card-content p-6">
+        <div class="flex items-center space-x-4">
+          <!-- UserCheck Icon -->
+          <div class="p-3 bg-green-100 rounded-lg">
+            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <div>
+            <p class="text-sm text-gray-600 font-medium">Membres actifs</p>
+            <p class="text-3xl font-bold text-green-600">{{getActiveUsersCount()}}</p>
+            <p class="text-xs text-gray-500 mt-1">Comptes activés</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card hover:shadow-lg transition-all duration-200 border-l-4 border-purple-500">
+      <div class="card-content p-6">
+        <div class="flex items-center space-x-4">
+          <!-- Premium Badge -->
+          <div class="p-3 bg-purple-100 rounded-lg">
+            <div class="w-8 h-8 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+              </svg>
+            </div>
+          </div>
+          <div>
+            <p class="text-sm text-gray-600 font-medium">Membres Premium</p>
+            <p class="text-3xl font-bold text-purple-600">{{getPremiumUsersCount()}}</p>
+            <p class="text-xs text-gray-500 mt-1">Abonnements premium</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barre de recherche et filtres -->
+  <div class="card">
+    <div class="card-content p-6">
+      <div class="flex flex-col sm:flex-row gap-4">
+        <div class="relative flex-1">
+          <!-- Search Icon -->
+          <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          <input
+            type="text"
+            placeholder="Rechercher par nom, email ou téléphone..."
+            [(ngModel)]="searchTerm"
+            (input)="onSearchChange()"
+            class="search-input pl-10"
+          />
+        </div>
+        <button class="btn-outline">
+          <!-- Filter Icon -->
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
+          </svg>
+          Filtres
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add User Form -->
+  <app-user-add
+    [isVisible]="showAddForm"
+    (onSubmit)="handleAddUser($event)"
+    (onCancel)="showAddForm = false"
+  ></app-user-add>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="card">
+    <div class="card-content p-12 text-center">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+      <p class="text-gray-600 font-medium">Chargement des utilisateurs...</p>
+    </div>
+  </div>
+
+  <!-- Liste des utilisateurs -->
+  <div *ngIf="!loading" class="grid gap-4">
+    <div *ngFor="let user of filteredUsers; trackBy: trackByEmail" class="card hover:shadow-lg transition-all duration-200">
+      <div class="card-content p-6">
+        <div class="flex items-start justify-between">
+          <div class="flex items-start space-x-4">
+            <!-- Avatar -->
+            <div class="avatar">
+              <div class="avatar-fallback">{{getInitials(user)}}</div>
+            </div>
+
+            <div class="flex-1">
+              <!-- User Name -->
+              <div class="flex items-center space-x-3 mb-2">
+                <h3 class="font-semibold text-lg text-gray-900">{{getFullName(user)}}</h3>
+                <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
+                  {{user.role}}
+                </span>
+              </div>
+
+              <!-- Status and Membership Badges -->
+              <div class="flex items-center space-x-2 mb-3">
+                <span [class]="'status-badge ' + getStatusBadge(user.isActive).class">
+                  {{getStatusBadge(user.isActive).text}}
+                </span>
+                <span [class]="'membership-badge ' + getMembershipBadge(user.membershipType).class">
+                  {{getMembershipBadge(user.membershipType).text}}
+                </span>
+              </div>
+
+              <!-- Contact Information -->
+              <div class="flex items-center space-x-6 mb-3 text-sm text-gray-600">
+                <div class="flex items-center space-x-2">
+                  <!-- Mail Icon -->
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                  </svg>
+                  <span class="truncate">{{user.email}}</span>
+                </div>
+                <div class="flex items-center space-x-2" *ngIf="user.telephone">
+                  <!-- Phone Icon -->
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                  </svg>
+                  <span>{{user.telephone}}</span>
+                </div>
+              </div>
+
+              <!-- Activity Information -->
+              <div class="flex items-center space-x-6 text-sm text-gray-500">
+                <div class="flex items-center space-x-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                  </svg>
+                  <span>{{user.booksLoaned}} livre(s) emprunté(s)</span>
+                </div>
+                <div class="flex items-center space-x-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a4 4 0 118 0v4m-4 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.829 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"></path>
+                  </svg>
+                  <span>Membre depuis {{getMemberSinceFormatted(user.memberSince)}}</span>
+                </div>
+                <div class="flex items-center space-x-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <span>{{getLastActivityFormatted(user.lastActivity)}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex items-center space-x-2">
+            <button class="btn-ghost btn-sm" title="Modifier l'utilisateur">
+              <!-- Edit Icon -->
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+              </svg>
+            </button>
+            <button
+              (click)="handleSuspendUser(user.email)"
+              [class]="'btn-ghost btn-sm ' + (user.isActive ? 'text-orange-600 hover:text-orange-700' : 'text-green-600 hover:text-green-700')"
+              [title]="user.isActive ? 'Suspendre l\'utilisateur' : 'Activer l\'utilisateur'"
+            >
+              <!-- Suspend/Activate Icon -->
+              <svg *ngIf="user.isActive" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18 18M5.636 5.636L6 6"></path>
+              </svg>
+              <svg *ngIf="!user.isActive" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </button>
+            <button
+              (click)="handleDeleteUser(user.email)"
+              class="btn-ghost btn-sm text-red-600 hover:text-red-700"
+              title="Supprimer l'utilisateur"
+            >
+              <!-- Delete Icon -->
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && filteredUsers.length === 0" class="card">
+    <div class="card-content p-12 text-center">
+      <!-- Users Icon -->
+      <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+      </svg>
+      <h3 class="text-xl font-semibold text-gray-900 mb-2">Aucun utilisateur trouvé</h3>
+      <p class="text-gray-600 mb-6">
+        {{searchTerm
+          ? "Aucun utilisateur ne correspond à votre recherche."
+          : "Commencez par ajouter des utilisateurs à votre système."
+        }}
+      </p>
+      <button
+        *ngIf="!searchTerm"
+        (click)="showAddForm = true"
+        class="btn-primary"
+      >
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+        Ajouter votre premier utilisateur
+      </button>
+    </div>
+  </div>
+</div>

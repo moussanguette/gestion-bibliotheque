@@ -1,0 +1,161 @@
+<div class="book-manager">
+  <!-- Header -->
+  <div class="manager-header">
+    <div class="header-content">
+      <h2 class="manager-title">Gestion des livres</h2>
+      <p class="manager-subtitle">Gérez votre collection de livres</p>
+    </div>
+    <button
+      (click)="showAddForm = true"
+      class="add-button"
+    >
+      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+      </svg>
+      Ajouter un livre
+    </button>
+  </div>
+
+  <!-- Search and Filters -->
+  <div class="search-filters-card">
+    <div class="search-filters-content">
+      <div class="search-container">
+        <div class="search-input-container">
+          <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          <input
+            type="text"
+            placeholder="Rechercher par titre, auteur, ISBN ou catégorie..."
+            [(ngModel)]="searchTerm"
+            (input)="onSearchChange()"
+            class="search-input"
+          />
+        </div>
+      </div>
+
+      <div class="filters-container">
+        <select
+          [(ngModel)]="selectedFilter"
+          class="filter-select"
+        >
+          <option *ngFor="let filter of filters" [value]="filter.value">
+            {{filter.label}}
+          </option>
+        </select>
+        <button class="filter-button" type="button">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
+          </svg>
+          Filtres
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Book Form -->
+  <app-add-book-form
+    [isVisible]="showAddForm"
+    [authors]="authors"
+    [categories]="categories"
+    (onSubmit)="handleAddBook($event)"
+    (onCancel)="showAddForm = false"
+  ></app-add-book-form>
+
+  <!-- Books List -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <p class="loading-text">Chargement des livres...</p>
+    </div>
+  </div>
+
+  <!-- Liste des livres -->
+  <div *ngIf="!loading" class="books-list">
+    <div
+      *ngFor="let book of filteredBooks"
+      class="book-list-card"
+    >
+      <div class="book-list-content">
+        <div class="flex items-start justify-between">
+          <div class="flex items-start space-x-4">
+            <div class="book-icon-list">
+              <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+              </svg>
+            </div>
+            <div class="flex-1">
+              <h3 class="book-list-title">{{book.titre}}</h3>
+              <p class="book-list-author">
+                par <span *ngFor="let auteur of book.auteurs; let last = last">
+                  {{auteur.prenom}} {{auteur.nom}}<span *ngIf="!last">, </span>
+                </span>
+              </p>
+              <div class="book-list-meta">
+                <span class="meta-item">ISBN: {{book.isbn}}</span>
+                <span class="meta-separator">•</span>
+                <span class="meta-item">{{book.categorie.nom}}</span>
+                <span class="meta-separator">•</span>
+                <span class="meta-item">{{book.datePublication | date:'yyyy'}}</span>
+              </div>
+              <div class="book-list-status">
+                <span [class]="'status-badge ' + getStatusBadge(book).class">
+                  {{getStatusBadge(book).text}}
+                </span>
+                <span class="availability-text">
+                  {{book.copiesAvailable}}/{{book.copiesTotal}} exemplaires disponibles
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="book-list-actions">
+            <button class="action-button-list view" title="Voir les détails">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+              </svg>
+            </button>
+            <button class="action-button-list edit" title="Modifier">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+              </svg>
+            </button>
+            <button
+              (click)="handleDeleteBook(book.id)"
+              class="action-button-list delete"
+              title="Supprimer"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && filteredBooks.length === 0" class="empty-state">
+    <div class="empty-content">
+      <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+      </svg>
+      <h3 class="empty-title">Aucun livre trouvé</h3>
+      <p class="empty-text">
+        {{searchTerm || selectedFilter !== 'all'
+          ? 'Aucun livre ne correspond à vos critères de recherche.'
+          : 'Commencez par ajouter des livres à votre collection.'
+        }}
+      </p>
+      <button
+        *ngIf="!searchTerm && selectedFilter === 'all'"
+        (click)="showAddForm = true"
+        class="empty-action-button"
+      >
+        Ajouter votre premier livre
+      </button>
+    </div>
+  </div>
+</div>

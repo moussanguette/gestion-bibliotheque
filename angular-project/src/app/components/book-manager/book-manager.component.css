@@ -1,0 +1,284 @@
+/* Book Manager Styles */
+.book-manager {
+  @apply space-y-6;
+}
+
+/* Header */
+.manager-header {
+  @apply flex items-center justify-between;
+}
+
+.header-content {
+  @apply flex-1;
+}
+
+.manager-title {
+  @apply text-2xl font-bold text-gray-900;
+}
+
+.manager-subtitle {
+  @apply text-gray-600 mt-1;
+}
+
+.add-button {
+  @apply inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200;
+}
+
+.add-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+}
+
+/* Search and Filters */
+.search-filters-card {
+  @apply bg-white shadow rounded-lg;
+}
+
+.search-filters-content {
+  @apply p-6 flex flex-col sm:flex-row gap-4;
+}
+
+.search-container {
+  @apply flex-1;
+}
+
+.search-input-container {
+  @apply relative;
+}
+
+.search-icon {
+  @apply absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4;
+}
+
+.search-input {
+  @apply w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200;
+}
+
+.filters-container {
+  @apply flex items-center space-x-4;
+}
+
+.filter-select {
+  @apply px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+}
+
+.filter-button {
+  @apply inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200;
+}
+
+/* Loading */
+.loading-container {
+  @apply bg-white shadow rounded-lg;
+}
+
+.loading-content {
+  @apply p-12 text-center;
+}
+
+.loading-spinner {
+  @apply animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4;
+}
+
+.loading-text {
+  @apply text-gray-600;
+}
+
+/* Books List */
+.books-list {
+  @apply grid gap-4;
+}
+
+.book-list-card {
+  @apply bg-white shadow rounded-lg hover:shadow-md transition-all duration-200;
+}
+
+.book-list-card:hover {
+  transform: translateY(-1px);
+}
+
+.book-list-content {
+  @apply p-6;
+}
+
+.book-icon-list {
+  @apply w-12 h-16 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0;
+}
+
+.book-list-actions {
+  @apply flex items-center space-x-2;
+}
+
+.action-button-list {
+  @apply p-2 rounded-md transition-all duration-200;
+}
+
+.action-button-list.view {
+  @apply text-gray-400 hover:text-blue-600 hover:bg-blue-50;
+}
+
+.action-button-list.edit {
+  @apply text-gray-400 hover:text-green-600 hover:bg-green-50;
+}
+
+.action-button-list.delete {
+  @apply text-gray-400 hover:text-red-600 hover:bg-red-50;
+}
+
+.action-button-list:hover {
+  transform: scale(1.05);
+}
+
+/* Book List Details */
+.book-list-title {
+  @apply text-lg font-semibold text-gray-900;
+}
+
+.book-list-author {
+  @apply text-gray-600 mb-2;
+}
+
+.book-list-meta {
+  @apply flex items-center space-x-2 text-sm text-gray-500 mb-3;
+}
+
+.book-list-status {
+  @apply flex items-center space-x-3;
+}
+
+/* Legacy Book Details (keeping for compatibility) */
+.book-details {
+  @apply space-y-3;
+}
+
+.book-title {
+  @apply text-lg font-semibold text-gray-900;
+}
+
+.book-author {
+  @apply text-gray-700 font-medium;
+}
+
+.book-publisher {
+  @apply text-gray-600 text-sm;
+}
+
+.book-meta {
+  @apply flex items-center space-x-2 text-sm text-gray-500;
+}
+
+.meta-item {
+  @apply truncate;
+}
+
+.meta-separator {
+  @apply text-gray-300;
+}
+
+.book-status {
+  @apply flex items-center space-x-3;
+}
+
+.status-badge {
+  @apply px-2 py-1 text-xs font-medium rounded-full;
+}
+
+.status-badge.status-available {
+  @apply bg-green-100 text-green-800;
+}
+
+.status-badge.status-unavailable {
+  @apply bg-red-100 text-red-800;
+}
+
+.status-badge.status-partial {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.availability-text {
+  @apply text-sm text-gray-600;
+}
+
+.book-description {
+  @apply text-sm text-gray-600 line-clamp-2;
+}
+
+/* Empty State */
+.empty-state {
+  @apply bg-white shadow rounded-lg;
+}
+
+.empty-content {
+  @apply p-12 text-center;
+}
+
+.empty-icon {
+  @apply w-12 h-12 text-gray-400 mx-auto mb-4;
+}
+
+.empty-title {
+  @apply text-lg font-medium text-gray-900 mb-2;
+}
+
+.empty-text {
+  @apply text-gray-600 mb-6;
+}
+
+.empty-action-button {
+  @apply inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .manager-header {
+    @apply flex-col items-start space-y-4;
+  }
+
+  .search-filters-content {
+    @apply flex-col;
+  }
+
+  .book-header {
+    @apply flex-col space-y-3;
+  }
+
+  .book-actions {
+    @apply justify-center;
+  }
+
+  .book-meta {
+    @apply flex-col items-start space-x-0 space-y-1;
+  }
+
+  .book-status {
+    @apply flex-col items-start space-x-0 space-y-2;
+  }
+}
+
+/* Animations */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.book-list-card {
+  animation: slideInUp 0.3s ease-out;
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}

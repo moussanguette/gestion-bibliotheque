@@ -1,0 +1,156 @@
+<div class="min-h-screen bg-gray-50">
+  <!-- Header -->
+  <header class="bg-white border-b border-gray-200">
+    <div class="px-6 py-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+          <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+              </svg>
+            </div>
+            <h1 class="text-xl font-bold">BiblioManager</h1>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-4">
+          <!-- Notifications -->
+          <button class="notification-btn">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.97 4.97a.75.75 0 011.07 1.05l-3.99 4.99a.75.75 0 01-1.08.02L4.324 8.384a.75.75 0 111.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 01.02-.022z"></path>
+            </svg>
+            <span class="notification-badge"></span>
+          </button>
+
+          <!-- Settings -->
+          <button class="settings-btn">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+          </button>
+
+          <!-- User menu -->
+          <div class="flex items-center space-x-2">
+            <span class="text-sm text-gray-700">Bienvenue, {{user?.email || 'Utilisateur'}}</span>
+            <button
+              (click)="handleLogout()"
+              class="logout-btn"
+            >
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+              </svg>
+              Déconnexion
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="p-6">
+    <div class="max-w-7xl mx-auto">
+      <!-- Tabs -->
+      <div class="mb-6">
+        <div class="border-b border-gray-200">
+          <nav class="-mb-px flex space-x-8">
+            <button
+              *ngFor="let tab of tabs"
+              (click)="activeTab = tab.id"
+              [class]="getTabClasses(tab.id)"
+            >
+              {{tab.label}}
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      <!-- Tab Content -->
+      <div [ngSwitch]="activeTab">
+        <!-- Vue d'ensemble -->
+        <div *ngSwitchCase="'overview'" class="space-y-6">
+          <div>
+            <h2 class="text-2xl font-bold mb-2">Vue d'ensemble</h2>
+            <p class="text-gray-600">Aperçu général de votre bibliothèque</p>
+          </div>
+
+          <!-- Stats Cards -->
+          <app-stats-cards></app-stats-cards>
+
+          <!-- Recent Activity and Due Soon -->
+          <div class="content-grid">
+            <!-- Recent Activity -->
+            <div class="activity-card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                  </svg>
+                  Activité récente
+                </h3>
+              </div>
+              <div class="card-content">
+                <app-recent-activity></app-recent-activity>
+              </div>
+            </div>
+
+            <!-- Due Soon -->
+            <div class="due-card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  Prêts à échéance
+                </h3>
+              </div>
+              <div class="card-content">
+                <div class="due-list">
+                  <div class="due-item urgent">
+                    <div class="due-details">
+                      <p class="due-title">Le Petit Prince</p>
+                      <p class="due-user">Marie Dubois</p>
+                    </div>
+                    <span class="due-badge urgent">Aujourd'hui</span>
+                  </div>
+                  <div class="due-item warning">
+                    <div class="due-details">
+                      <p class="due-title">1984</p>
+                      <p class="due-user">Jean Martin</p>
+                    </div>
+                    <span class="due-badge warning">Demain</span>
+                  </div>
+                  <div class="due-item info">
+                    <div class="due-details">
+                      <p class="due-title">L'Étranger</p>
+                      <p class="due-user">Sophie Leroy</p>
+                    </div>
+                    <span class="due-badge info">Dans 2 jours</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Books Tab -->
+        <div *ngSwitchCase="'books'">
+          <app-book-manager></app-book-manager>
+        </div>
+
+        <!-- Users Tab -->
+        <div *ngSwitchCase="'users'">
+          <app-user-manager></app-user-manager>
+        </div>
+
+        <!-- Autres onglets (placeholder) -->
+        <div *ngSwitchDefault class="placeholder-content">
+          <h3 class="placeholder-title">{{getActiveTabLabel()}} - En cours de développement</h3>
+          <p class="placeholder-text">Cette section sera implémentée prochainement.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

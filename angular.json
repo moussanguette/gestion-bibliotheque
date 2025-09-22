@@ -48,8 +48,6 @@
               "public/assets/plugins/datatable/js/dataTables.bootstrap5.min.js",
               "public/assets/plugins/perfect-scrollbar/js/perfect-scrollbar.js",
               "public/assets/js/pace.min.js",
-              "public/assets/plugins/vectormap/jquery-jvectormap-2.0.2.min.js",
-              "public/assets/plugins/vectormap/jquery-jvectormap-world-mill-en.js",
               "public/assets/plugins/apexcharts-bundle/js/apexcharts.min.js",
               "public/assets/js/app.js",
               "public/assets/js/index.js"

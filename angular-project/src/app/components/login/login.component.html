@@ -1,0 +1,119 @@
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+  <div class="w-full max-w-md">
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
+        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+        </svg>
+      </div>
+      <h1 class="text-3xl font-bold text-gray-900">BiblioManager</h1>
+      <p class="text-gray-600 mt-2">Système de gestion de bibliothèque</p>
+    </div>
+
+    <div class="bg-white shadow-xl rounded-lg border-0">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-2xl font-bold text-center">
+          {{isSignUpMode ? 'Inscription' : 'Connexion'}}
+        </h2>
+        <p class="text-gray-600 text-center mt-1">
+          {{isSignUpMode
+            ? 'Créez votre compte administrateur'
+            : 'Connectez-vous à votre compte administrateur'
+          }}
+        </p>
+      </div>
+
+      <div class="p-6">
+        <form (ngSubmit)="handleSubmit()" class="space-y-4">
+          <div *ngIf="isSignUpMode" class="space-y-2">
+            <label for="name" class="block text-sm font-medium text-gray-700">Nom complet</label>
+            <input
+              id="name"
+              type="text"
+              placeholder="Jean Dupont"
+              [(ngModel)]="formData.name"
+              name="name"
+              required
+              class="w-full h-11 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          <div class="space-y-2">
+            <label for="email" class="block text-sm font-medium text-gray-700">Nom d'utilisateur</label>
+            <input
+              id="email"
+              type="text"
+              placeholder="admin"
+              [(ngModel)]="formData.email"
+              name="email"
+              required
+              class="w-full h-11 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          <div class="space-y-2">
+            <label for="password" class="block text-sm font-medium text-gray-700">Mot de passe</label>
+            <div class="relative">
+              <input
+                id="password"
+                [type]="showPassword ? 'text' : 'password'"
+                placeholder="••••••••"
+                [(ngModel)]="formData.password"
+                name="password"
+                required
+                class="w-full h-11 px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <button
+                type="button"
+                (click)="showPassword = !showPassword"
+                class="absolute right-0 top-0 h-full px-3 flex items-center text-gray-500 hover:text-gray-700"
+              >
+                <svg *ngIf="!showPassword" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+                <svg *ngIf="showPassword" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            [disabled]="isLoading"
+            class="w-full h-11 mt-6 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {{isLoading
+              ? (isSignUpMode ? 'Inscription...' : 'Connexion...')
+              : (isSignUpMode ? "S'inscrire" : 'Se connecter')
+            }}
+          </button>
+        </form>
+
+        <div *ngIf="errorMessage" class="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+          <p class="text-red-600 text-sm">{{errorMessage}}</p>
+        </div>
+
+        <div class="mt-6 text-center">
+          <button
+            type="button"
+            (click)="toggleMode()"
+            class="text-blue-600 hover:underline text-sm"
+          >
+            {{isSignUpMode
+              ? 'Déjà un compte ? Se connecter'
+              : 'Pas de compte ? S\'inscrire'
+            }}
+          </button>
+        </div>
+
+        <div *ngIf="!isSignUpMode" class="mt-6 p-4 bg-gray-50 rounded-lg">
+          <p class="text-sm text-gray-600 mb-2">Compte de démonstration :</p>
+          <p class="text-xs text-gray-500">Nom d'utilisateur: admin</p>
+          <p class="text-xs text-gray-500">Mot de passe: password123</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

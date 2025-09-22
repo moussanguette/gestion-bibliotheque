@@ -1,0 +1,263 @@
+<div *ngIf="isVisible" class="modal-overlay">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h3 class="modal-title">
+        <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+        Ajouter un nouveau livre
+      </h3>
+      <button
+        type="button"
+        (click)="handleCancel()"
+        class="close-button"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <form (ngSubmit)="handleSubmit()" class="modal-content">
+      <div class="form-grid">
+        <!-- Titre -->
+        <div class="form-group span-2">
+          <label for="titre" class="form-label required">Titre du livre</label>
+          <input
+            id="titre"
+            type="text"
+            [(ngModel)]="formData.titre"
+            name="titre"
+            placeholder="Le Petit Prince"
+            class="form-input"
+            required
+          />
+        </div>
+
+        <!-- Auteurs -->
+        <div class="form-group">
+          <label class="form-label required">Auteurs</label>
+
+          <!-- Selected Authors Display -->
+          <div *ngIf="selectedAuthors.length > 0" class="selected-authors">
+            <div *ngFor="let authorId of selectedAuthors" class="author-tag">
+              <span class="author-name">
+                {{getAuthorName(authorId)}}
+              </span>
+              <button
+                type="button"
+                (click)="removeAuthor(authorId)"
+                class="remove-author-btn"
+                title="Retirer cet auteur"
+              >
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Author Selection Dropdown -->
+          <div class="author-dropdown-container">
+            <button
+              type="button"
+              (click)="toggleAuthorDropdown()"
+              class="author-dropdown-trigger"
+              [class.active]="showAuthorDropdown"
+            >
+              <span class="dropdown-text">
+                {{selectedAuthors.length === 0 ? 'Sélectionner les auteurs' : 'Ajouter d\'autres auteurs'}}
+              </span>
+              <svg class="dropdown-icon" [class.rotated]="showAuthorDropdown" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+
+            <div *ngIf="showAuthorDropdown" class="author-dropdown-menu">
+              <div class="dropdown-search">
+                <input
+                  type="text"
+                  [(ngModel)]="authorSearchTerm"
+                  name="authorSearch"
+                  placeholder="Rechercher un auteur..."
+                  class="search-input"
+                  (click)="$event.stopPropagation()"
+                />
+              </div>
+              <div class="dropdown-options">
+                <div
+                  *ngFor="let author of filteredAuthors"
+                  (click)="toggleAuthorSelection(author.id)"
+                  class="dropdown-option"
+                  [class.selected]="isAuthorSelected(author.id)"
+                >
+                  <div class="option-checkbox">
+                    <svg *ngIf="isAuthorSelected(author.id)" class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                  </div>
+                  <span class="option-text">{{author.prenom}} {{author.nom}}</span>
+                </div>
+              </div>
+              <div *ngIf="filteredAuthors.length === 0" class="no-results">
+                Aucun auteur trouvé
+              </div>
+            </div>
+          </div>
+
+          <p class="form-hint">{{selectedAuthors.length === 0 ? 'Au moins un auteur est requis' : selectedAuthors.length + ' auteur(s) sélectionné(s)'}}</p>
+        </div>
+
+        <!-- ISBN -->
+        <div class="form-group">
+          <label for="isbn" class="form-label required">ISBN</label>
+          <div class="isbn-container">
+            <input
+              id="isbn"
+              type="text"
+              [(ngModel)]="formData.isbn"
+              name="isbn"
+              placeholder="978-2-07-040851-4"
+              class="form-input isbn-input"
+              required
+            />
+            <button
+              type="button"
+              (click)="generateISBN()"
+              class="isbn-generate-btn"
+              title="Générer un ISBN"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Catégorie -->
+        <div class="form-group">
+          <label for="categorieId" class="form-label required">Catégorie</label>
+          <select
+            id="categorieId"
+            [(ngModel)]="formData.categorieId"
+            name="categorieId"
+            class="form-select"
+            required
+          >
+            <option value="0">Sélectionner une catégorie</option>
+            <option *ngFor="let category of categories" [value]="category.id">
+              {{category.nom}}
+            </option>
+          </select>
+        </div>
+
+        <!-- Date de publication -->
+        <div class="form-group">
+          <label for="datePublication" class="form-label required">Date de publication</label>
+          <input
+            id="datePublication"
+            type="date"
+            [(ngModel)]="formData.datePublication"
+            name="datePublication"
+            class="form-input"
+            required
+          />
+        </div>
+
+        <!-- Statut -->
+        <div class="form-group">
+          <label for="status" class="form-label required">Statut</label>
+          <select
+            id="status"
+            [(ngModel)]="formData.status"
+            name="status"
+            class="form-select"
+            required
+          >
+            <option value="AVAILABLE">Disponible</option>
+            <option value="UNAVAILABLE">Indisponible</option>
+            <option value="PARTIAL">Partiel</option>
+          </select>
+        </div>
+
+        <!-- Nombre de pages -->
+        <div class="form-group">
+          <label for="nombrePages" class="form-label required">Nombre de pages</label>
+          <input
+            id="nombrePages"
+            type="number"
+            [(ngModel)]="formData.nombrePages"
+            name="nombrePages"
+            [min]="1"
+            class="form-input"
+            required
+          />
+        </div>
+
+        <!-- Nombre total d'exemplaires -->
+        <div class="form-group">
+          <label for="copiesTotal" class="form-label required">Nombre total d'exemplaires</label>
+          <input
+            id="copiesTotal"
+            type="number"
+            [(ngModel)]="formData.copiesTotal"
+            name="copiesTotal"
+            [min]="1"
+            [max]="100"
+            class="form-input"
+            required
+            (ngModelChange)="onCopiesTotalChange()"
+          />
+        </div>
+
+        <!-- Exemplaires disponibles -->
+        <div class="form-group">
+          <label for="copiesAvailable" class="form-label required">Exemplaires disponibles</label>
+          <input
+            id="copiesAvailable"
+            type="number"
+            [(ngModel)]="formData.copiesAvailable"
+            name="copiesAvailable"
+            [min]="0"
+            [max]="formData.copiesTotal"
+            class="form-input"
+            required
+          />
+        </div>
+
+        <!-- Résumé -->
+        <div class="form-group span-2">
+          <label for="resume" class="form-label required">Résumé</label>
+          <textarea
+            id="resume"
+            [(ngModel)]="formData.resume"
+            name="resume"
+            rows="4"
+            placeholder="Résumé du livre..."
+            class="form-textarea"
+            required
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button
+          type="button"
+          (click)="handleCancel()"
+          class="cancel-button"
+          [disabled]="isLoading"
+        >
+          Annuler
+        </button>
+        <button
+          type="submit"
+          class="submit-button"
+          [disabled]="isLoading"
+        >
+          <span *ngIf="isLoading" class="loading-spinner"></span>
+          {{isLoading ? 'Ajout en cours...' : 'Ajouter le livre'}}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

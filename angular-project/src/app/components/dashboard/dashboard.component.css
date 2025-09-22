@@ -1,0 +1,244 @@
+/* Styles spécifiques au composant Dashboard */
+
+/* Header styles */
+.notification-btn,
+.settings-btn {
+  @apply p-2 text-gray-400 hover:text-gray-600 relative transition-colors duration-200;
+}
+
+.notification-badge {
+  @apply absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-400;
+}
+
+.logout-btn {
+  @apply inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200;
+}
+
+.logout-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Tab styles */
+.tab-button {
+  @apply whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200;
+}
+
+.tab-active {
+  @apply border-blue-500 text-blue-600;
+}
+
+.tab-inactive {
+  @apply border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300;
+}
+
+/* Stats grid */
+.stats-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6;
+}
+
+.stat-card {
+  @apply bg-white overflow-hidden shadow rounded-lg transition-all duration-200 hover:shadow-md;
+}
+
+.stat-content {
+  @apply p-5;
+}
+
+.stat-content {
+  @apply flex items-center;
+}
+
+.stat-icon-container {
+  @apply flex-shrink-0;
+}
+
+.stat-icon {
+  @apply h-6 w-6;
+}
+
+.stat-details {
+  @apply ml-5 w-0 flex-1;
+}
+
+.stat-label {
+  @apply text-sm font-medium text-gray-500 truncate;
+}
+
+.stat-value {
+  @apply text-lg font-medium text-gray-900;
+}
+
+/* Content grid */
+.content-grid {
+  @apply grid grid-cols-1 lg:grid-cols-2 gap-6;
+}
+
+/* Card styles */
+.activity-card,
+.due-card {
+  @apply bg-white shadow rounded-lg transition-all duration-200 hover:shadow-md;
+}
+
+.card-header {
+  @apply px-6 py-4 border-b border-gray-200;
+}
+
+.card-title {
+  @apply text-lg font-medium text-gray-900 flex items-center;
+}
+
+.card-content {
+  @apply p-6;
+}
+
+/* Activity styles */
+.activity-list {
+  @apply space-y-4;
+}
+
+.activity-item {
+  @apply flex items-center space-x-3;
+}
+
+.activity-indicator {
+  @apply w-2 h-2 rounded-full;
+}
+
+.activity-indicator.green {
+  @apply bg-green-400;
+}
+
+.activity-indicator.blue {
+  @apply bg-blue-400;
+}
+
+.activity-indicator.yellow {
+  @apply bg-yellow-400;
+}
+
+.activity-details {
+  @apply flex-1;
+}
+
+.activity-title {
+  @apply text-sm font-medium text-gray-900;
+}
+
+.activity-subtitle {
+  @apply text-xs text-gray-500;
+}
+
+/* Due styles */
+.due-list {
+  @apply space-y-3;
+}
+
+.due-item {
+  @apply flex items-center justify-between p-3 rounded-lg transition-all duration-200;
+}
+
+.due-item.urgent {
+  @apply bg-red-50 hover:bg-red-100;
+}
+
+.due-item.warning {
+  @apply bg-orange-50 hover:bg-orange-100;
+}
+
+.due-item.info {
+  @apply bg-yellow-50 hover:bg-yellow-100;
+}
+
+.due-details {
+  @apply flex-1;
+}
+
+.due-title {
+  @apply font-medium;
+}
+
+.due-user {
+  @apply text-sm text-gray-600;
+}
+
+.due-badge {
+  @apply px-2 py-1 text-xs font-medium rounded-full;
+}
+
+.due-badge.urgent {
+  @apply bg-red-100 text-red-800;
+}
+
+.due-badge.warning {
+  @apply bg-orange-100 text-orange-800;
+}
+
+.due-badge.info {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+/* Placeholder styles */
+.placeholder-content {
+  @apply bg-white shadow rounded-lg p-8 text-center;
+}
+
+.placeholder-title {
+  @apply text-lg font-medium text-gray-900 mb-2;
+}
+
+.placeholder-text {
+  @apply text-gray-600;
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stat-card,
+.activity-card,
+.due-card {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Hover effects */
+.stat-card:hover {
+  transform: translateY(-2px);
+}
+
+.activity-item:hover .activity-indicator {
+  transform: scale(1.2);
+  transition: transform 0.2s ease;
+}
+
+.due-item:hover {
+  transform: translateX(4px);
+  transition: transform 0.2s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .stats-grid {
+    @apply grid-cols-2;
+  }
+
+  .content-grid {
+    @apply grid-cols-1;
+  }
+
+  .card-header {
+    @apply px-4 py-3;
+  }
+
+  .card-content {
+    @apply p-4;
+  }
+}

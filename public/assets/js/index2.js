@@ -304,8 +304,8 @@ var options = {
 
 
   
-   // world map
-	
+   // world map - Désactivé car vectorMap n'est pas chargé
+	/*
 	jQuery('#geographic-map').vectorMap({
 		map: 'world_mill_en',
 		backgroundColor: 'transparent',
@@ -356,6 +356,7 @@ var options = {
 			alert(message);
 		}
 	});
+	*/
 
 
     $(document).ready(function() {

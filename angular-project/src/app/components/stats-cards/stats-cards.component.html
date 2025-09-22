@@ -1,0 +1,119 @@
+<div class="stats-container">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="stats-grid">
+    <div *ngFor="let i of [1,2,3,4]" class="stat-card loading">
+      <div class="loading-content">
+        <div class="loading-icon"></div>
+        <div class="loading-text">
+          <div class="loading-bar"></div>
+          <div class="loading-bar short"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div *ngIf="!loading && stats" class="stats-grid">
+    <div
+      *ngFor="let card of getStatCards()"
+      [class]="'stat-card ' + card.color"
+    >
+      <div class="stat-content">
+        <div class="stat-header">
+          <div [class]="'stat-icon-container ' + card.color">
+            <!-- Book Icon -->
+            <svg
+              *ngIf="card.icon === 'book'"
+              class="stat-icon"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+            </svg>
+
+            <!-- Users Icon -->
+            <svg
+              *ngIf="card.icon === 'users'"
+              class="stat-icon"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+
+            <!-- Clock Icon -->
+            <svg
+              *ngIf="card.icon === 'clock'"
+              class="stat-icon"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+
+            <!-- Warning Icon -->
+            <svg
+              *ngIf="card.icon === 'warning'"
+              class="stat-icon"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+          </div>
+
+          <div [class]="'trend-indicator ' + card.trend">
+            <!-- Trend Up -->
+            <svg
+              *ngIf="card.trend === 'up'"
+              class="trend-icon"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+            </svg>
+            <!-- Trend Down -->
+            <svg
+              *ngIf="card.trend === 'down'"
+              class="trend-icon"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path>
+            </svg>
+          </div>
+        </div>
+
+        <div class="stat-details">
+          <div class="stat-value">{{card.value}}</div>
+          <div class="stat-title">{{card.title}}</div>
+
+          <div class="stat-change">
+            <span [class]="'change-value ' + card.trend">{{card.change}}</span>
+            <span class="change-label">{{card.changeLabel}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="!loading && !stats" class="error-state">
+    <div class="error-content">
+      <svg class="error-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+      </svg>
+      <h3 class="error-title">Erreur de chargement</h3>
+      <p class="error-text">Impossible de charger les statistiques</p>
+      <button (click)="loadStats()" class="retry-button">
+        Réessayer
+      </button>
+    </div>
+  </div>
+</div>
