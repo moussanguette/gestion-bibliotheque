@@ -66,6 +66,7 @@
           </nav>
         </div>
       </div>
+      <app-notification-banner></app-notification-banner>
 
       <!-- Tab Content -->
       <div [ngSwitch]="activeTab">
@@ -144,6 +145,12 @@
         <div *ngSwitchCase="'users'">
           <app-user-manager></app-user-manager>
         </div>
+
+        <!-- Emprunts Tab -->
+        <div *ngSwitchCase="'emprunts'">
+          <app-emprunt-manager></app-emprunt-manager>
+        </div>
+
 
         <!-- Autres onglets (placeholder) -->
         <div *ngSwitchDefault class="placeholder-content">

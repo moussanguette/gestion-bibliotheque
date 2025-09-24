@@ -1,8 +1,8 @@
 export interface Stats {
   totalBooks: number;
   totalUsers: number;
-  totalLoans: number;
-  activeLoans: number;
+  totalEmprunts: number;
+  activeEmprunts: number;
   overdue: number;
   totalLivresPrets: number;
   totalEnRetard: number;
@@ -30,7 +30,7 @@ export interface RecentActivity {
 }
 
 export interface MonthlyStats {
-  loansThisMonth: number;
+  empruntsThisMonth: number;
   returnsThisMonth: number;
   newBooksThisMonth: number;
   newUsersThisMonth: number;

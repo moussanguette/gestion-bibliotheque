@@ -129,7 +129,7 @@ export class UserManagerComponent implements OnInit, OnDestroy {
       role: 'LECTEUR',
       isActive: userData.status === 'active',
       membershipType: 'Standard',
-      booksLoaned: 0,
+      booksEmpruntes: 0,
       memberSince: new Date().toISOString(),
       lastActivity: new Date().toISOString()
     };

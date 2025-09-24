@@ -4,7 +4,7 @@ import { Observable, from, map, catchError, of } from 'rxjs';
 import { AuthService } from './auth.service';
 import { Book, BookFormData } from '../models/book.model';
 import { LibraryUser } from '../models/user.model';
-import { Loan, CreateLoanRequest } from '../models/loan.model';
+import { Emprunt, CreateEmpruntRequest } from '../models/emprunt.model';
 import { ApiResponse, LibraryStats, ActivityItem, ActivityResponse, StatsResponse } from '../models/api-response.model';
 import { Author, Category } from '../models/book.model';
 import { environment } from '../../environments/environment';
@@ -177,72 +177,72 @@ export class ApiService {
     );
   }
 
-  // Loans methods (Emprunts)
-  getLoans(): Observable<ApiResponse<Loan[]>> {
+  // Emprunts methods (Emprunts)
+  getEmprunts(): Observable<ApiResponse<Emprunt[]>> {
     return this.handleRequest(
       this.getHeaders().then(headers =>
-        this.http.get<Loan[]>(`${environment.api.baseUrl}/emprunts`, { headers }).toPromise()
+        this.http.get<Emprunt[]>(`${environment.api.baseUrl}/emprunts`, { headers }).toPromise()
       )
     );
   }
 
-  getLoanById(id: string): Observable<ApiResponse<Loan>> {
+  getEmpruntById(id: string): Observable<ApiResponse<Emprunt>> {
     return this.handleRequest(
       this.getHeaders().then(headers =>
-        this.http.get<Loan>(`${environment.api.baseUrl}/emprunts/${id}`, { headers }).toPromise()
+        this.http.get<Emprunt>(`${environment.api.baseUrl}/emprunts/${id}`, { headers }).toPromise()
       )
     );
   }
 
-  getActiveLoans(): Observable<ApiResponse<Loan[]>> {
+  getActiveEmprunts(): Observable<ApiResponse<Emprunt[]>> {
     return this.handleRequest(
       this.getHeaders().then(headers =>
-        this.http.get<Loan[]>(`${environment.api.baseUrl}/emprunts/actifs`, { headers }).toPromise()
+        this.http.get<Emprunt[]>(`${environment.api.baseUrl}/emprunts/actifs`, { headers }).toPromise()
       )
     );
   }
 
-  getOverdueLoans(): Observable<ApiResponse<Loan[]>> {
+  getOverdueEmprunts(): Observable<ApiResponse<Emprunt[]>> {
     return this.handleRequest(
       this.getHeaders().then(headers =>
-        this.http.get<Loan[]>(`${environment.api.baseUrl}/emprunts/retard`, { headers }).toPromise()
+        this.http.get<Emprunt[]>(`${environment.api.baseUrl}/emprunts/retard`, { headers }).toPromise()
       )
     );
   }
 
-  getDueSoonLoans(): Observable<ApiResponse<Loan[]>> {
+  getDueSoonEmprunts(): Observable<ApiResponse<Emprunt[]>> {
     return this.handleRequest(
       this.getHeaders().then(headers =>
-        this.http.get<Loan[]>(`${environment.api.baseUrl}/emprunts/bientot-echeance`, { headers }).toPromise()
+        this.http.get<Emprunt[]>(`${environment.api.baseUrl}/emprunts/bientot-echeance`, { headers }).toPromise()
       )
     );
   }
 
-  getLoansByUser(userId: string): Observable<ApiResponse<Loan[]>> {
+  getEmpruntsByUser(userId: string): Observable<ApiResponse<Emprunt[]>> {
     return this.handleRequest(
       this.getHeaders().then(headers =>
-        this.http.get<Loan[]>(`${environment.api.baseUrl}/emprunts/user/${userId}`, { headers }).toPromise()
+        this.http.get<Emprunt[]>(`${environment.api.baseUrl}/emprunts/user/${userId}`, { headers }).toPromise()
       )
     );
   }
 
-  getLoansByBook(bookId: string): Observable<ApiResponse<Loan[]>> {
+  getEmpruntsByBook(bookId: string): Observable<ApiResponse<Emprunt[]>> {
     return this.handleRequest(
       this.getHeaders().then(headers =>
-        this.http.get<Loan[]>(`${environment.api.baseUrl}/emprunts/livre/${bookId}`, { headers }).toPromise()
+        this.http.get<Emprunt[]>(`${environment.api.baseUrl}/emprunts/livre/${bookId}`, { headers }).toPromise()
       )
     );
   }
 
-  getLoansByStatus(status: string): Observable<ApiResponse<Loan[]>> {
+  getEmpruntsByStatus(status: string): Observable<ApiResponse<Emprunt[]>> {
     return this.handleRequest(
       this.getHeaders().then(headers =>
-        this.http.get<Loan[]>(`${environment.api.baseUrl}/emprunts/status/${status}`, { headers }).toPromise()
+        this.http.get<Emprunt[]>(`${environment.api.baseUrl}/emprunts/status/${status}`, { headers }).toPromise()
       )
     );
   }
 
-  getAvailableBooksForLoan(): Observable<ApiResponse<Book[]>> {
+  getAvailableBooksForEmprunt(): Observable<ApiResponse<Book[]>> {
     return this.handleRequest(
       this.getHeaders().then(headers =>
         this.http.get<Book[]>(`${environment.api.baseUrl}/emprunts/livres-disponibles`, { headers }).toPromise()
@@ -266,39 +266,39 @@ export class ApiService {
     );
   }
 
-  createLoan(loanData: CreateLoanRequest): Observable<ApiResponse<Loan>> {
+  createEmprunt(empruntData: CreateEmpruntRequest): Observable<ApiResponse<Emprunt>> {
     return this.handleRequest(
       this.getHeaders().then(headers =>
-        this.http.post<Loan>(`${environment.api.baseUrl}/emprunts`, loanData, { headers }).toPromise()
+        this.http.post<Emprunt>(`${environment.api.baseUrl}/emprunts`, empruntData, { headers }).toPromise()
       )
     );
   }
 
-  createDirectLoan(loanData: any): Observable<ApiResponse<Loan>> {
+  createDirectEmprunt(empruntData: any): Observable<ApiResponse<Emprunt>> {
     return this.handleRequest(
       this.getHeaders().then(headers =>
-        this.http.post<Loan>(`${environment.api.baseUrl}/emprunts/direct`, loanData, { headers }).toPromise()
+        this.http.post<Emprunt>(`${environment.api.baseUrl}/emprunts/direct`, empruntData, { headers }).toPromise()
       )
     );
   }
 
-  updateLoan(id: string, updates: Partial<Loan>): Observable<ApiResponse<Loan>> {
+  updateEmprunt(id: string, updates: Partial<Emprunt>): Observable<ApiResponse<Emprunt>> {
     return this.handleRequest(
       this.getHeaders().then(headers =>
-        this.http.put<Loan>(`${environment.api.baseUrl}/emprunts/${id}`, updates, { headers }).toPromise()
+        this.http.put<Emprunt>(`${environment.api.baseUrl}/emprunts/${id}`, updates, { headers }).toPromise()
       )
     );
   }
 
-  returnBook(loanId: string): Observable<ApiResponse<Loan>> {
+  returnBook(empruntId: string): Observable<ApiResponse<Emprunt>> {
     return this.handleRequest(
       this.getHeaders().then(headers =>
-        this.http.put<Loan>(`${environment.api.baseUrl}/emprunts/${loanId}/retourner`, {}, { headers }).toPromise()
+        this.http.put<Emprunt>(`${environment.api.baseUrl}/emprunts/${empruntId}/retourner`, {}, { headers }).toPromise()
       )
     );
   }
 
-  deleteLoan(id: string): Observable<ApiResponse<{ success: boolean }>> {
+  deleteEmprunt(id: string): Observable<ApiResponse<{ success: boolean }>> {
     return this.handleRequest(
       this.getHeaders().then(headers =>
         this.http.delete<{ success: boolean }>(`${environment.api.baseUrl}/emprunts/${id}`, { headers }).toPromise()
@@ -533,15 +533,15 @@ export class ApiService {
         return of({
           totalBooks: 0,
           totalUsers: 0,
-          totalLoans: 0,
-          activeLoans: 0,
+          totalEmprunts: 0,
+          activeEmprunts: 0,
           overdue: 0,
           totalLivresPrets: 0,
           totalEnRetard: 0,
           popularBooks: [],
           recentActivity: [],
           monthlyStats: {
-            loansThisMonth: 0,
+            empruntsThisMonth: 0,
             returnsThisMonth: 0,
             newBooksThisMonth: 0,
             newUsersThisMonth: 0

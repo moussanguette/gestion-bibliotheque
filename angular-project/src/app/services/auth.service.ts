@@ -40,9 +40,18 @@ export class AuthService {
   async signUp(credentials: SignUpCredentials): Promise<ApiResponse<User>> {
     try {
       const response = await this.http.post<{ user: User; token: string }>(`${environment.api.baseUrl}/auth/signup`, {
-        username: credentials.email, // Utilisation du username comme demandé par votre API
+        email: credentials.email,
+        username: credentials.username,
         password: credentials.password,
-        name: credentials.name
+        nom: credentials.nom,
+        prenom: credentials.prenom,
+        telephone: credentials.telephone,
+        adresse: credentials.adresse,
+        role: credentials.role || 'LECTEUR',
+        membershipType: credentials.membershipType || 'Standard',
+        booksEmpruntes: credentials.booksEmpruntes || 0,
+        memberSince: credentials.memberSince || new Date().toISOString(),
+        lastActivity: credentials.lastActivity || new Date().toISOString()
       }).toPromise();
 
       if (response?.user && response?.token) {
@@ -135,5 +144,52 @@ export class AuthService {
       'Content-Type': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` })
     };
+  }
+
+  // Méthode pour créer des comptes de test/démo
+  async createDemoAccounts(): Promise<ApiResponse<boolean>> {
+    try {
+      const response = await this.http.post<{ success: boolean; message: string }>(
+        `${environment.api.baseUrl}/auth/create-demo-accounts`,
+        {}
+      ).toPromise();
+
+      if (response?.success) {
+        return { data: true };
+      } else {
+        return { error: response?.message || 'Erreur lors de la création des comptes de démo' };
+      }
+    } catch (error: any) {
+      console.error('Error creating demo accounts:', error);
+      return { error: error.error?.message || 'Erreur lors de la création des comptes de démo' };
+    }
+  }
+
+  // Méthode pour obtenir les informations du profil utilisateur
+  async getUserProfile(): Promise<ApiResponse<User>> {
+    try {
+      const token = this.getStoredToken();
+      if (!token) {
+        return { error: 'Aucun token d\'authentification trouvé' };
+      }
+
+      const response = await this.http.get<User>(
+        `${environment.api.baseUrl}/auth/profile`,
+        {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }
+      ).toPromise();
+
+      if (response) {
+        this.currentUserSubject.next(response);
+        localStorage.setItem('user_data', JSON.stringify(response));
+        return { data: response };
+      } else {
+        return { error: 'Erreur lors de la récupération du profil' };
+      }
+    } catch (error: any) {
+      console.error('Error getting user profile:', error);
+      return { error: error.error?.message || 'Erreur lors de la récupération du profil' };
+    }
   }
 }

@@ -3,11 +3,14 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ApiService } from '../../services/api.service';
+import { NotificationService } from '../../services/notification.service';
 import { User } from '../../models/user.model';
 import { StatsCardsComponent } from '../stats-cards/stats-cards.component';
 import { RecentActivityComponent } from '../recent-activity/recent-activity.component';
 import { BookManagerComponent } from '../book-manager/book-manager.component';
 import { UserManagerComponent } from '../user-manager/user-manager.component';
+import { EmpruntManagerComponent } from '../emprunt-manager/emprunt-manager.component';
+import { NotificationBannerComponent } from '../notification-banner/notification-banner.component';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -18,7 +21,9 @@ import { environment } from '../../../environments/environment';
     StatsCardsComponent,
     RecentActivityComponent,
     BookManagerComponent,
-    UserManagerComponent
+    UserManagerComponent,
+    EmpruntManagerComponent,
+    NotificationBannerComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
@@ -31,19 +36,29 @@ export class DashboardComponent implements OnInit {
     { id: 'overview', label: 'Vue d\'ensemble' },
     { id: 'books', label: 'Livres' },
     { id: 'users', label: 'Utilisateurs' },
-    { id: 'loans', label: 'Prêts' },
+    { id: 'emprunts', label: 'Prêts' },
     { id: 'reports', label: 'Rapports' }
   ];
 
   constructor(
     private authService: AuthService,
     private apiService: ApiService,
-    private router: Router
+    private router: Router,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit() {
     this.user = this.authService.getCurrentUser();
     this.testAPIConnection();
+
+    // Afficher une notification de bienvenue
+    if (this.user) {
+      this.notificationService.showSuccess(
+        `Connecté en tant que ${this.user.email}`,
+        'Bienvenue dans BiblioManager!',
+        5000
+      );
+    }
   }
 
   testAPIConnection() {
@@ -56,6 +71,13 @@ export class DashboardComponent implements OnInit {
         console.log('✅ Books API Response:', data);
         const books = data.data || data || [];
         console.log('Number of books found:', books.length);
+
+        this.notificationService.showInfo(
+          `${books.length} livres trouvés dans la base de données`,
+          'Connexion API réussie',
+          5000
+        );
+
         if (books.length > 0) {
           console.log('📚 First book structure:', books[0]);
           console.log('📊 Book properties:', {
@@ -71,6 +93,11 @@ export class DashboardComponent implements OnInit {
       },
       error: (error) => {
         console.error('❌ Books API Error:', error);
+        this.notificationService.showError(
+          'Impossible de se connecter à l\'API des livres',
+          'Erreur de connexion',
+          true
+        );
       }
     });
 
@@ -82,6 +109,9 @@ export class DashboardComponent implements OnInit {
       },
       error: (error) => {
         console.error('❌ Authors API Error:', error);
+        this.notificationService.showWarning(
+          'Problème lors du chargement des auteurs'
+        );
       }
     });
 
@@ -93,6 +123,9 @@ export class DashboardComponent implements OnInit {
       },
       error: (error) => {
         console.error('❌ Categories API Error:', error);
+        this.notificationService.showWarning(
+          'Problème lors du chargement des catégories'
+        );
       }
     });
   }
@@ -115,7 +148,10 @@ export class DashboardComponent implements OnInit {
   async handleLogout() {
     const result = await this.authService.signOut();
     if (!result.error) {
+      this.notificationService.showSuccess('Déconnexion réussie', 'À bientôt!');
       this.router.navigate(['/login']);
+    } else {
+      this.notificationService.showError('Erreur lors de la déconnexion');
     }
   }
 }

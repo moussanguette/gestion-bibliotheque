@@ -36,8 +36,8 @@ export class RecentActivityComponent implements OnInit {
 
   getActivityIcon(type: string): string {
     switch (type) {
-      case 'loan':
-        return 'loan';
+      case 'emprunt':
+        return 'emprunt';
       case 'return':
         return 'return';
       case 'book_added':
@@ -51,7 +51,7 @@ export class RecentActivityComponent implements OnInit {
 
   getActivityColor(type: string): string {
     switch (type) {
-      case 'loan':
+      case 'emprunt':
         return 'blue';
       case 'return':
         return 'green';

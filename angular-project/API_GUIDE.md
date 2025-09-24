@@ -97,9 +97,9 @@ interface Book {
 }
 ```
 
-### Emprunt (Loan)
+### Emprunt
 ```typescript
-interface Loan {
+interface Emprunt {
   id: string;
   bookId: string;
   userId: string;

@@ -1,0 +1,47 @@
+<div class="notification-banner" *ngIf="notifications.length > 0">
+  <div class="max-w-7xl mx-auto px-6">
+    <div
+      *ngFor="let notification of notifications; trackBy: trackByNotificationId"
+      [class]="getNotificationClasses(notification.type)"
+      [@slideInOut]
+    >
+      <!-- Icon -->
+      <svg
+        [class]="getIconClasses(notification.type)"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          [attr.d]="getIconPath(notification.type)"
+        ></path>
+      </svg>
+
+      <!-- Content -->
+      <div class="flex-1">
+        <h4 *ngIf="notification.title" class="font-medium mb-1">
+          {{ notification.title }}
+        </h4>
+        <p class="text-sm" [class.mt-0]="!notification.title">
+          {{ notification.message }}
+        </p>
+      </div>
+
+      <!-- Close button -->
+      <button
+        (click)="closeNotification(notification.id)"
+        [class]="getCloseButtonClasses(notification.type)"
+        class="ml-3 p-1 rounded-md hover:bg-white hover:bg-opacity-20 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-200"
+        aria-label="Fermer la notification"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,82 @@
+.notification-banner {
+  position: relative;
+  z-index: 50;
+  margin-bottom: 1rem;
+}
+
+.notification-item {
+  animation: slideInDown 0.3s ease-out;
+  transition: all 0.3s ease-in-out;
+}
+
+.notification-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.notification-item.removing {
+  animation: slideOutUp 0.3s ease-in;
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideOutUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+.notification-item button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+/* Success notification styling */
+.notification-item.bg-green-50 {
+  border-left: 4px solid #10b981;
+}
+
+/* Error notification styling */
+.notification-item.bg-red-50 {
+  border-left: 4px solid #ef4444;
+}
+
+/* Warning notification styling */
+.notification-item.bg-yellow-50 {
+  border-left: 4px solid #f59e0b;
+}
+
+/* Info notification styling */
+.notification-item.bg-blue-50 {
+  border-left: 4px solid #3b82f6;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .notification-banner {
+    margin-left: -1.5rem;
+    margin-right: -1.5rem;
+  }
+
+  .notification-item {
+    margin-left: 1rem;
+    margin-right: 1rem;
+    border-radius: 0.5rem;
+  }
+}

@@ -6,8 +6,8 @@ export interface ApiResponse<T> {
 export interface LibraryStats {
   totalBooks: number;
   totalUsers: number;
-  activeLoans: number;
-  overdueLoans: number;
+  activeEmprunts: number;
+  overdueEmprunts: number;
   booksAddedThisMonth: number;
   usersRegisteredThisMonth: number;
   popularCategories: CategoryStats[];
@@ -21,7 +21,7 @@ export interface CategoryStats {
 
 export interface ActivityItem {
   id: string;
-  type: 'loan' | 'return' | 'book_added' | 'user_registered';
+  type: 'emprunt' | 'return' | 'book_added' | 'user_registered';
   description: string;
   timestamp: Date;
   userEmail?: string;

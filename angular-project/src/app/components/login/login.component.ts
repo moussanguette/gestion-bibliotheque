@@ -13,76 +13,166 @@ import { AuthCredentials, SignUpCredentials } from '../../models/user.model';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
-  isSignUpMode = false;
-  showPassword = false;
+  activeTab: 'login' | 'signup' = 'login';
+
+  // Login form
+  loginEmail = '';
+  loginPassword = '';
+  showLoginPassword = false;
+
+  // Signup form
+  signupUsername = '';
+  signupEmail = '';
+  signupPassword = '';
+  nom = '';
+  prenom = '';
+  telephone = '';
+  adresse = '';
+  showSignupPassword = false;
+
   isLoading = false;
   errorMessage = '';
-
-  formData = {
-    email: '', // Sera utilisé comme username dans l'API
-    password: '',
-    name: ''
-  };
 
   constructor(
     private authService: AuthService,
     private router: Router
   ) {}
 
-  toggleMode() {
-    this.isSignUpMode = !this.isSignUpMode;
+  setActiveTab(tab: 'login' | 'signup') {
+    this.activeTab = tab;
     this.errorMessage = '';
-    this.formData = { email: '', password: '', name: '' };
+    this.clearForms();
   }
 
-  async handleSubmit() {
+  clearForms() {
+    this.loginEmail = '';
+    this.loginPassword = '';
+    this.signupUsername = '';
+    this.signupEmail = '';
+    this.signupPassword = '';
+    this.nom = '';
+    this.prenom = '';
+    this.telephone = '';
+    this.adresse = '';
+  }
+
+  useDefaultCredentials() {
+    this.loginEmail = 'user@default.fr';
+    this.loginPassword = 'user123';
+  }
+
+  async handleLoginSubmit() {
     if (this.isLoading) return;
 
     this.isLoading = true;
     this.errorMessage = '';
 
     try {
-      if (this.isSignUpMode) {
-        await this.handleSignUp();
+      const credentials: AuthCredentials = {
+        email: this.loginEmail,
+        password: this.loginPassword
+      };
+
+      const result = await this.authService.signIn(credentials);
+
+      if (result.error) {
+        this.errorMessage = result.error;
       } else {
-        await this.handleLogin();
+        this.router.navigate(['/dashboard']);
       }
     } catch (error) {
-      this.errorMessage = 'Une erreur inattendue s\'est produite';
+      this.errorMessage = 'Une erreur inattendue s\'est produite lors de la connexion';
     } finally {
       this.isLoading = false;
     }
   }
 
-  private async handleLogin() {
-    const credentials: AuthCredentials = {
-      email: this.formData.email,
-      password: this.formData.password
-    };
+  async handleSignupSubmit() {
+    if (this.isLoading) return;
 
-    const result = await this.authService.signIn(credentials);
+    this.isLoading = true;
+    this.errorMessage = '';
 
-    if (result.error) {
-      this.errorMessage = result.error;
-    } else {
-      this.router.navigate(['/dashboard']);
+    try {
+      const credentials: SignUpCredentials = {
+        email: this.signupEmail,
+        password: this.signupPassword,
+        username: this.signupUsername,
+        nom: this.nom,
+        prenom: this.prenom,
+        telephone: this.telephone,
+        adresse: this.adresse,
+        role: 'LECTEUR',
+        membershipType: 'Standard',
+        booksEmpruntes: 0,
+        memberSince: new Date().toISOString(),
+        lastActivity: new Date().toISOString()
+      };
+
+      const result = await this.authService.signUp(credentials);
+
+      if (result.error) {
+        this.errorMessage = result.error;
+      } else {
+        // Auto-login after successful signup
+        this.loginEmail = this.signupEmail;
+        this.loginPassword = this.signupPassword;
+        await this.handleLoginSubmit();
+      }
+    } catch (error) {
+      this.errorMessage = 'Une erreur inattendue s\'est produite lors de l\'inscription';
+    } finally {
+      this.isLoading = false;
     }
   }
 
-  private async handleSignUp() {
-    const credentials: SignUpCredentials = {
-      email: this.formData.email,
-      password: this.formData.password,
-      name: this.formData.name
-    };
+  async initializeDefaultData() {
+    if (this.isLoading) return;
 
-    const result = await this.authService.signUp(credentials);
+    this.isLoading = true;
+    this.errorMessage = '';
 
-    if (result.error) {
-      this.errorMessage = result.error;
-    } else {
-      // Auto-login after successful signup
-      await this.handleLogin();
+    try {
+      // This would typically call a service method to initialize default data
+      // For now, we'll just simulate the process
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      this.useDefaultCredentials();
+
+      // You could add actual default data initialization logic here
+      console.log('Default data initialized');
+
+    } catch (error) {
+      this.errorMessage = 'Erreur lors de l\'initialisation des données par défaut';
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  // Renseigne automatiquement les identifiants du manager
+  useManagerCredentials() {
+    this.loginEmail = 'manager@bibliotheque.fr';
+    this.loginPassword = 'manager123';
+  }
+
+  // Initialise des comptes de démo côté API puis prépare les identifiants manager
+  async initializeManagerData() {
+    if (this.isLoading) return;
+
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    try {
+      const result = await this.authService.createDemoAccounts();
+      if (result.error) {
+        this.errorMessage = result.error;
+      }
+      // Dans tous les cas, pré-remplir les identifiants manager
+      this.useManagerCredentials();
+    } catch (error) {
+      this.errorMessage = 'Erreur lors de l\'initialisation des données manager';
+    } finally {
+      this.isLoading = false;
     }
   }
 }

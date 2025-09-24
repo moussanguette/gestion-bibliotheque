@@ -58,10 +58,10 @@ export class StatsCardsComponent implements OnInit {
         trend: this.stats.monthlyStats.newUsersThisMonth > 0 ? 'up' : 'neutral'
       },
       {
-        id: 'loans',
+        id: 'emprunts',
         title: 'Prêts en cours',
         value: this.stats.activeLoans.toLocaleString(),
-        change: this.getLoansChange(),
+        change: this.getEmpruntsChange(),
         changeLabel: 'vs objectif',
         icon: 'clock',
         color: 'yellow',
@@ -80,7 +80,7 @@ export class StatsCardsComponent implements OnInit {
     ];
   }
 
-  private getLoansChange(): string {
+  private getEmpruntsChange(): string {
     const percentage = (this.stats!.activeLoans / 100) * 100;
     return `${percentage.toFixed(0)}%`;
   }

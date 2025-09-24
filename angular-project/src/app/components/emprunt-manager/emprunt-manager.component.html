@@ -1,0 +1,320 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-900">Gestion des prêts</h2>
+      <p class="text-gray-600 mt-1">Suivez et gérez tous les prêts en cours</p>
+    </div>
+    <button
+      (click)="openCreateDialog()"
+      class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
+    >
+      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+      </svg>
+      Nouveau prêt
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="space-y-6">
+    <div class="grid gap-4">
+      <div *ngFor="let item of [1,2,3,4,5]" class="animate-pulse">
+        <div class="bg-white rounded-lg border border-gray-200 p-6">
+          <div class="flex items-center space-x-4">
+            <div class="w-12 h-16 bg-gray-200 rounded"></div>
+            <div class="flex-1 space-y-2">
+              <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div class="h-3 bg-gray-200 rounded w-1/2"></div>
+              <div class="h-3 bg-gray-200 rounded w-2/3"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!isLoading" class="space-y-6">
+    <!-- Search and Filters -->
+    <div class="bg-white rounded-lg border border-gray-200 p-6">
+      <div class="flex flex-col sm:flex-row gap-4">
+        <div class="relative flex-1">
+          <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          <input
+            type="text"
+            placeholder="Rechercher par titre de livre ou nom d'utilisateur..."
+            [(ngModel)]="searchTerm"
+            (input)="onSearchChange()"
+            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors duration-200"
+          />
+        </div>
+        <select
+          [(ngModel)]="filterStatus"
+          (change)="onStatusFilterChange()"
+          class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white min-w-[180px]"
+        >
+          <option value="all">Tous les prêts</option>
+          <option value="active">En cours</option>
+          <option value="overdue">En retard</option>
+          <option value="returned">Rendus</option>
+          <option value="cancelled">Annulés</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Emprunts List -->
+    <div class="grid gap-4">
+      <!-- Empty State -->
+      <div *ngIf="filteredEmprunts.length === 0" class="bg-white rounded-lg border border-gray-200 p-12 text-center">
+        <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+        </svg>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">Aucun prêt trouvé</h3>
+        <p class="text-gray-600">
+          <span *ngIf="searchTerm || filterStatus !== 'all'; else noEmpruntsMessage">
+            Aucun prêt ne correspond à votre recherche.
+          </span>
+          <ng-template #noEmpruntsMessage>
+            Aucun prêt enregistré pour le moment.
+          </ng-template>
+        </p>
+      </div>
+
+      <!-- Emprunts Cards -->
+      <div
+        *ngFor="let emprunt of filteredEmprunts; trackBy: trackByEmpruntId"
+        class="bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow duration-200"
+      >
+        <div class="p-6">
+          <div class="flex items-start justify-between">
+            <div class="flex items-start space-x-4">
+              <!-- Book Icon -->
+              <div class="w-12 h-16 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                </svg>
+              </div>
+
+              <!-- Emprunt Details -->
+              <div class="flex-1">
+                <h3 class="font-semibold text-lg text-gray-900">{{ emprunt.bookTitle }}</h3>
+                <p *ngIf="emprunt.bookAuthor" class="text-sm text-gray-600">{{ emprunt.bookAuthor }}</p>
+
+                <!-- User Info -->
+                <div class="flex items-center space-x-2 mt-2">
+                  <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                  </svg>
+                  <span class="text-gray-600 text-sm">{{ emprunt.userName }}</span>
+                </div>
+
+                <!-- Dates and Status Info -->
+                <div class="flex flex-wrap items-center gap-4 mt-3 text-sm text-gray-500">
+                  <!-- Emprunt Date -->
+                  <div class="flex items-center space-x-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    <span>Emprunté le {{ formatDate(emprunt.empruntDate) }}</span>
+                  </div>
+
+                  <!-- Due Date -->
+                  <div class="flex items-center space-x-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>Échéance: {{ formatDate(emprunt.dueDate) }}</span>
+                  </div>
+
+                  <!-- Return Date -->
+                  <div *ngIf="emprunt.returnDate" class="flex items-center space-x-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>Rendu le {{ formatDate(emprunt.returnDate) }}</span>
+                  </div>
+                </div>
+
+                <!-- Status and Time Info -->
+                <div class="flex items-center space-x-4 mt-3">
+                  <!-- Status Badge -->
+                  <span [class]="getStatusBadgeClass(emprunt)">
+                    {{ getStatusText(emprunt) }}
+                  </span>
+
+                  <!-- Days Until Due -->
+                  <span
+                    *ngIf="emprunt.status === 'active'"
+                    class="text-sm"
+                    [class.text-red-600]="empruntService.isOverdue(emprunt.dueDate, emprunt.status)"
+                    [class.text-gray-600]="!empruntService.isOverdue(emprunt.dueDate, emprunt.status)"
+                  >
+                    {{ getDaysUntilDue(emprunt.dueDate) }}
+                  </span>
+
+                  <!-- Renewal Info -->
+                  <span *ngIf="emprunt.renewalCount > 0" class="text-sm text-gray-500">
+                    Renouvelé {{ emprunt.renewalCount }}x
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center space-x-2 flex-shrink-0">
+              <!-- Renew Button -->
+              <button
+                *ngIf="canRenew(emprunt)"
+                (click)="renewEmprunt(emprunt.id)"
+                class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
+              >
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                Renouveler
+              </button>
+
+              <!-- Return Button -->
+              <button
+                *ngIf="canReturn(emprunt)"
+                (click)="returnBook(emprunt.id)"
+                class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-green-600 bg-green-50 border border-green-200 rounded-md hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200"
+              >
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
+                </svg>
+                Retour
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create Emprunt Dialog -->
+<div *ngIf="isCreateDialogOpen" class="fixed inset-0 z-50 overflow-y-auto">
+  <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <!-- Background overlay -->
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" (click)="closeCreateDialog()"></div>
+
+    <!-- Dialog -->
+    <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+      <form [formGroup]="empruntForm" (ngSubmit)="createEmprunt()">
+        <!-- Header -->
+        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+          <div class="flex items-start">
+            <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+              <h3 class="text-lg leading-6 font-medium text-gray-900 mb-2">
+                Créer un nouveau prêt
+              </h3>
+              <p class="text-sm text-gray-500 mb-4">
+                Enregistrez un nouveau prêt de livre pour un utilisateur.
+              </p>
+
+              <!-- Form Fields -->
+              <div class="space-y-4">
+                <!-- Book Selection -->
+                <div>
+                  <label for="livreId" class="block text-sm font-medium text-gray-700 mb-1">
+                    Livre
+                  </label>
+                  <select
+                    id="livreId"
+                    formControlName="livreId"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  >
+                    <option value="">
+                      {{ books.length === 0 ? 'Aucun livre disponible' : 'Sélectionnez un livre' }}
+                    </option>
+                    <option *ngFor="let book of books" [value]="book.id">
+                      {{ book.title }} - {{ book.author }} ({{ book.copiesAvailable }} disponibles)
+                    </option>
+                  </select>
+                  <p *ngIf="books.length === 0" class="mt-1 text-sm text-amber-600">
+                    ⚠️ Aucun livre n'est actuellement disponible pour un prêt. Vérifiez que des livres ont été ajoutés et qu'ils ont des copies disponibles.
+                  </p>
+                </div>
+
+                <!-- User Selection -->
+                <div>
+                  <label for="userId" class="block text-sm font-medium text-gray-700 mb-1">
+                    Utilisateur
+                  </label>
+                  <select
+                    id="userId"
+                    formControlName="userId"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  >
+                    <option value="">
+                      {{ users.length === 0 ? 'Aucun utilisateur éligible' : 'Sélectionnez un utilisateur' }}
+                    </option>
+                    <option *ngFor="let user of users" [value]="user.id">
+                      {{ user.fullName }} ({{ user.email }})
+                    </option>
+                  </select>
+                  <p *ngIf="users.length === 0" class="mt-1 text-sm text-amber-600">
+                    ⚠️ Aucun utilisateur éligible trouvé. Vérifiez qu'il y a des utilisateurs actifs dans le système.
+                  </p>
+                </div>
+
+                <!-- Duration -->
+                <div>
+                  <label for="dureeJours" class="block text-sm font-medium text-gray-700 mb-1">
+                    Durée (jours)
+                  </label>
+                  <input
+                    type="number"
+                    id="dureeJours"
+                    formControlName="dureeJours"
+                    min="1"
+                    max="30"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    placeholder="Nombre de jours"
+                  />
+                </div>
+
+                <!-- Notes -->
+                <div>
+                  <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">
+                    Notes (optionnel)
+                  </label>
+                  <textarea
+                    id="notes"
+                    formControlName="notes"
+                    rows="3"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"
+                    placeholder="Ajoutez des notes sur ce prêt..."
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+          <button
+            type="submit"
+            [disabled]="!empruntForm.valid || isCreatingEmprunt"
+            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span *ngIf="!isCreatingEmprunt">Créer le prêt</span>
+            <span *ngIf="isCreatingEmprunt">Création...</span>
+          </button>
+          <button
+            type="button"
+            (click)="closeCreateDialog()"
+            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+          >
+            Annuler
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

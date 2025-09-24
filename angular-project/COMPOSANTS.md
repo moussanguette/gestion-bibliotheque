@@ -195,7 +195,7 @@ Tous les composants incluent des données mockées pour la démonstration :
 
 ### Composants à implémenter
 1. **UserManager** - Gestion des utilisateurs
-2. **LoanManager** - Gestion des prêts
+2. **EmpruntManager** - Gestion des prêts
 3. **ReportsView** - Vue des rapports
 4. **NotificationSystem** - Système de notifications
 

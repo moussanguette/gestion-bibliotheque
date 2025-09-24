@@ -18,9 +18,9 @@
     >
       <div class="activity-timeline">
         <div [class]="'activity-indicator ' + getActivityColor(activity.type)">
-          <!-- Loan Icon -->
+          <!-- Emprunt Icon -->
           <svg
-            *ngIf="getActivityIcon(activity.type) === 'loan'"
+            *ngIf="getActivityIcon(activity.type) === 'emprunt'"
             class="activity-icon"
             fill="none"
             stroke="currentColor"
