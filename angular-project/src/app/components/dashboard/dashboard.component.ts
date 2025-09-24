@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ApiService } from '../../services/api.service';
@@ -18,6 +19,7 @@ import { environment } from '../../../environments/environment';
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     StatsCardsComponent,
     RecentActivityComponent,
     BookManagerComponent,
@@ -31,6 +33,14 @@ import { environment } from '../../../environments/environment';
 export class DashboardComponent implements OnInit {
   user: User | null = null;
   activeTab = 'overview';
+  dueSoonEmprunts: any[] = [];
+  loading = false;
+
+  // Modal properties
+  showEditModal = false;
+  selectedEmprunt: any = null;
+  newDateRetour = '';
+  modalLoading = false;
 
   tabs = [
     { id: 'overview', label: 'Vue d\'ensemble' },
@@ -50,6 +60,7 @@ export class DashboardComponent implements OnInit {
   ngOnInit() {
     this.user = this.authService.getCurrentUser();
     this.testAPIConnection();
+    this.loadDueSoonEmprunts();
 
     // Afficher une notification de bienvenue
     if (this.user) {
@@ -143,6 +154,106 @@ export class DashboardComponent implements OnInit {
   getActiveTabLabel(): string {
     const activeTabObj = this.tabs.find(tab => tab.id === this.activeTab);
     return activeTabObj?.label || '';
+  }
+
+  loadDueSoonEmprunts() {
+    this.loading = true;
+    this.apiService.getDueSoonEmprunts().subscribe({
+      next: (response) => {
+        console.log('✅ Due Soon Emprunts Response:', response);
+        this.dueSoonEmprunts = response.data || [];
+        console.log('📊 Due Soon Emprunts count:', this.dueSoonEmprunts.length);
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('❌ Due Soon Emprunts Error:', error);
+        this.notificationService.showError(
+          'Erreur lors du chargement des prêts bientôt en échéance'
+        );
+        this.loading = false;
+      }
+    });
+  }
+
+  getDueDateLabel(returnDate: string, empruntDate: string): { text: string, class: string } {
+    if (!returnDate || !empruntDate) {
+      return { text: 'Date non définie', class: 'error' };
+    }
+
+    const today = new Date();
+    const returnDateObj = new Date(returnDate);
+    const borrowDate = new Date(empruntDate);
+
+    // Vérifier si les dates sont valides
+    if (isNaN(returnDateObj.getTime()) || isNaN(borrowDate.getTime())) {
+      return { text: 'Date invalide', class: 'error' };
+    }
+
+    // Calculer la date d'échéance : dateRetour - dateEmprunt
+    const loanDurationMs = returnDateObj.getTime() - borrowDate.getTime();
+    const dueDate = new Date(borrowDate.getTime() + loanDurationMs);
+
+    const diffTime = dueDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+      return { text: `Retard de ${Math.abs(diffDays)} jour${Math.abs(diffDays) > 1 ? 's' : ''}`, class: 'overdue' };
+    } else if (diffDays === 0) {
+      return { text: 'Aujourd\'hui', class: 'urgent' };
+    } else if (diffDays === 1) {
+      return { text: 'Demain', class: 'warning' };
+    } else if (diffDays <= 7) {
+      return { text: `Dans ${diffDays} jour${diffDays > 1 ? 's' : ''}`, class: 'info' };
+    } else {
+      return { text: `Dans ${diffDays} jours`, class: 'info' };
+    }
+  }
+
+  openEditModal(emprunt: any) {
+    this.selectedEmprunt = emprunt;
+    this.newDateRetour = emprunt.returnDate || '';
+    this.showEditModal = true;
+  }
+
+  closeEditModal() {
+    this.showEditModal = false;
+    this.selectedEmprunt = null;
+    this.newDateRetour = '';
+    this.modalLoading = false;
+  }
+
+  async updateDateRetour() {
+    if (!this.selectedEmprunt || !this.newDateRetour) {
+      this.notificationService.showError('Veuillez sélectionner une date de retour');
+      return;
+    }
+
+    this.modalLoading = true;
+
+    try {
+      await this.apiService.updateEmprunt(this.selectedEmprunt.id, {
+        returnDate: new Date(this.newDateRetour)
+      }).toPromise();
+
+      this.notificationService.showSuccess('Date de retour modifiée avec succès');
+
+      // Mettre à jour l'emprunt dans la liste locale
+      const index = this.dueSoonEmprunts.findIndex(e => e.id === this.selectedEmprunt.id);
+      if (index !== -1) {
+        this.dueSoonEmprunts[index].returnDate = this.newDateRetour;
+      }
+
+      this.closeEditModal();
+
+      // Recharger la liste pour avoir les données à jour
+      this.loadDueSoonEmprunts();
+
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour:', error);
+      this.notificationService.showError('Erreur lors de la modification de la date de retour');
+    } finally {
+      this.modalLoading = false;
+    }
   }
 
   async handleLogout() {

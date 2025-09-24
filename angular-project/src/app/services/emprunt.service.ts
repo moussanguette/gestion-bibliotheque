@@ -63,7 +63,7 @@ export class EmpruntService {
 
   // Renew emprunt
   renewEmprunt(empruntId: string): Observable<Emprunt> {
-    return this.http.patch<{ data: Emprunt }>(`${this.apiUrl}/${empruntId}/renew`, {})
+    return this.http.patch<{ data: Emprunt }>(`${this.apiUrl}/${empruntId}`, {})
       .pipe(
         map(response => response.data),
         tap(() => this.refreshEmprunts())
@@ -320,6 +320,7 @@ export class EmpruntService {
     const statusMap: { [key: string]: 'active' | 'returned' | 'overdue' | 'cancelled' } = {
       'ENCOURS': 'active',
       'RETOURNE': 'returned',
+      'RETOUR': 'returned',  // Handle both RETOUR and RETOURNE
       'ANNULE': 'cancelled'
     };
 

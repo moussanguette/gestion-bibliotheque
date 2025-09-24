@@ -108,27 +108,25 @@
                 </h3>
               </div>
               <div class="card-content">
-                <div class="due-list">
-                  <div class="due-item urgent">
+                <div class="due-list" *ngIf="!loading && dueSoonEmprunts.length > 0">
+                  <div class="due-item" [ngClass]="getDueDateLabel(emprunt.returnDate, emprunt.empruntDate).class" *ngFor="let emprunt of dueSoonEmprunts">
                     <div class="due-details">
-                      <p class="due-title">Le Petit Prince</p>
-                      <p class="due-user">Marie Dubois</p>
+                      <p class="due-title">{{ emprunt.livre?.titre || 'Titre indisponible' }}</p>
+                      <p class="due-user">{{ emprunt.user?.nom || emprunt.user?.name || 'Utilisateur inconnu' }}</p>
                     </div>
-                    <span class="due-badge urgent">Aujourd'hui</span>
+                    <span class="due-badge" [ngClass]="getDueDateLabel(emprunt.returnDate, emprunt.empruntDate).class">
+                      {{ getDueDateLabel(emprunt.returnDate, emprunt.empruntDate).text }}
+                    </span>
                   </div>
-                  <div class="due-item warning">
-                    <div class="due-details">
-                      <p class="due-title">1984</p>
-                      <p class="due-user">Jean Martin</p>
-                    </div>
-                    <span class="due-badge warning">Demain</span>
+                </div>
+                <div class="due-list" *ngIf="loading">
+                  <div class="text-center py-4">
+                    <p>Chargement des prêts en cours...</p>
                   </div>
-                  <div class="due-item info">
-                    <div class="due-details">
-                      <p class="due-title">L'Étranger</p>
-                      <p class="due-user">Sophie Leroy</p>
-                    </div>
-                    <span class="due-badge info">Dans 2 jours</span>
+                </div>
+                <div class="due-list" *ngIf="!loading && dueSoonEmprunts.length === 0">
+                  <div class="text-center py-4">
+                    <p class="text-gray-500">Aucun prêt bientôt en échéance</p>
                   </div>
                 </div>
               </div>
@@ -157,6 +155,56 @@
           <h3 class="placeholder-title">{{getActiveTabLabel()}} - En cours de développement</h3>
           <p class="placeholder-text">Cette section sera implémentée prochainement.</p>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal pour modifier la date de retour -->
+  <div *ngIf="showEditModal" class="modal-overlay" (click)="closeEditModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">Modifier la date de retour</h3>
+        <button class="modal-close-btn" (click)="closeEditModal()">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="mb-4">
+          <p class="text-sm text-gray-600 mb-2">Livre: <strong>{{ selectedEmprunt?.livre?.titre }}</strong></p>
+          <p class="text-sm text-gray-600 mb-4">Emprunteur: <strong>{{ selectedEmprunt?.user?.nom || selectedEmprunt?.user?.name }}</strong></p>
+        </div>
+
+        <div class="form-group">
+          <label for="dateRetour" class="form-label">Nouvelle date de retour</label>
+          <input
+            type="date"
+            id="dateRetour"
+            [(ngModel)]="newDateRetour"
+            class="form-input"
+            [disabled]="modalLoading"
+          />
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button
+          class="btn btn-secondary"
+          (click)="closeEditModal()"
+          [disabled]="modalLoading"
+        >
+          Annuler
+        </button>
+        <button
+          class="btn btn-primary"
+          (click)="updateDateRetour()"
+          [disabled]="modalLoading || !newDateRetour"
+        >
+          <span *ngIf="modalLoading" class="loading-spinner"></span>
+          {{ modalLoading ? 'Modification...' : 'Modifier' }}
+        </button>
       </div>
     </div>
   </div>

@@ -5,6 +5,7 @@ import { Subscription, combineLatest } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 
 import { EmpruntService } from '../../services/emprunt.service';
+import { ApiService } from '../../services/api.service';
 import { NotificationService } from '../../services/notification.service';
 import { Emprunt, CreateEmpruntRequest, BookSummary, UserSummary, EmpruntFilter } from '../../models/emprunt.model';
 
@@ -25,6 +26,18 @@ export class EmpruntManagerComponent implements OnInit, OnDestroy {
   isCreatingEmprunt = false;
   isCreateDialogOpen = false;
 
+  // Modal properties
+  showEditModal = false;
+  selectedEmprunt: Emprunt | null = null;
+  newDateRetour = '';
+  modalLoading = false;
+
+  // Renewal modal properties
+  showRenewModal = false;
+  selectedEmpruntForRenewal: Emprunt | null = null;
+  renewalReturnDate = '';
+  renewalLoading = false;
+
   // Filter properties
   searchTerm = '';
   filterStatus: 'all' | 'active' | 'returned' | 'overdue' | 'cancelled' = 'all';
@@ -36,6 +49,7 @@ export class EmpruntManagerComponent implements OnInit, OnDestroy {
 
   constructor(
     public empruntService: EmpruntService,
+    private apiService: ApiService,
     private notificationService: NotificationService,
     private fb: FormBuilder
   ) {
@@ -241,16 +255,20 @@ export class EmpruntManagerComponent implements OnInit, OnDestroy {
   }
 
   renewEmprunt(empruntId: string): void {
-    this.empruntService.renewEmprunt(empruntId).subscribe({
-      next: () => {
-        this.notificationService.showSuccess('Prêt renouvelé avec succès');
-        this.loadData();
-      },
-      error: (error) => {
-        console.error('Error renewing emprunt:', error);
-        this.notificationService.showError('Erreur lors du renouvellement');
-      }
-    });
+    // Find the emprunt to check if it can be renewed
+    const emprunt = this.emprunts.find(e => e.id === empruntId);
+    if (!emprunt) {
+      this.notificationService.showError('Prêt introuvable');
+      return;
+    }
+
+    if (!this.canRenew(emprunt)) {
+      this.notificationService.showError('Ce prêt ne peut pas être renouvelé (statut: ' + emprunt.status + ')');
+      return;
+    }
+
+    // Open renewal modal instead of directly renewing
+    this.openRenewModal(emprunt);
   }
 
   // Helper methods for template
@@ -298,5 +316,100 @@ export class EmpruntManagerComponent implements OnInit, OnDestroy {
 
   trackByEmpruntId(index: number, emprunt: Emprunt): string {
     return emprunt.id;
+  }
+
+  // Modal methods
+  openEditModal(emprunt: Emprunt): void {
+    this.selectedEmprunt = emprunt;
+    this.newDateRetour = emprunt.returnDate ? new Date(emprunt.returnDate).toISOString().split('T')[0] : '';
+    this.showEditModal = true;
+  }
+
+  closeEditModal(): void {
+    this.showEditModal = false;
+    this.selectedEmprunt = null;
+    this.newDateRetour = '';
+    this.modalLoading = false;
+  }
+
+  async updateDateRetour(): Promise<void> {
+    if (!this.selectedEmprunt || !this.newDateRetour) {
+      this.notificationService.showError('Veuillez sélectionner une date de retour');
+      return;
+    }
+
+    this.modalLoading = true;
+
+    try {
+      await this.apiService.updateEmprunt(this.selectedEmprunt.id, {
+        returnDate: new Date(this.newDateRetour)
+      }).toPromise();
+
+      this.notificationService.showSuccess('Date de retour modifiée avec succès');
+      this.closeEditModal();
+      this.loadData(); // Recharger les données
+
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour:', error);
+      this.notificationService.showError('Erreur lors de la modification de la date de retour');
+    } finally {
+      this.modalLoading = false;
+    }
+  }
+
+  // Renewal modal methods
+  openRenewModal(emprunt: Emprunt): void {
+    this.selectedEmpruntForRenewal = emprunt;
+    this.renewalReturnDate = '';
+    this.showRenewModal = true;
+  }
+
+  closeRenewModal(): void {
+    this.showRenewModal = false;
+    this.selectedEmpruntForRenewal = null;
+    this.renewalReturnDate = '';
+    this.renewalLoading = false;
+  }
+
+  getMinRenewalDate(): string {
+    const today = new Date();
+    today.setDate(today.getDate() + 1); // Minimum is tomorrow
+    return today.toISOString().split('T')[0];
+  }
+
+  confirmRenewal(): void {
+    if (!this.selectedEmpruntForRenewal || !this.renewalReturnDate) {
+      this.notificationService.showError('Veuillez sélectionner une nouvelle date de retour');
+      return;
+    }
+
+    this.renewalLoading = true;
+
+    this.apiService.updateEmprunt(this.selectedEmpruntForRenewal.id, {
+      dueDate: new Date(this.renewalReturnDate)
+    }).subscribe({
+      next: (response) => {
+        this.notificationService.showSuccess('Prêt renouvelé avec succès');
+        this.closeRenewModal();
+        this.loadData();
+      },
+      error: (error) => {
+        console.error('Erreur lors du renouvellement:', error);
+        let errorMessage = 'Erreur lors du renouvellement';
+
+        if (error.status === 500) {
+          errorMessage = 'Erreur serveur: Ce prêt ne peut pas être renouvelé';
+        } else if (error.status === 400) {
+          errorMessage = 'Ce prêt ne peut pas être renouvelé (déjà retourné ou limite atteinte)';
+        } else if (error.status === 0) {
+          errorMessage = 'Impossible de contacter le serveur';
+        }
+
+        this.notificationService.showError(errorMessage);
+      },
+      complete: () => {
+        this.renewalLoading = false;
+      }
+    });
   }
 }
