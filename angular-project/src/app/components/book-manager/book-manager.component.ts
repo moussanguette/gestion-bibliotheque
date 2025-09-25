@@ -23,6 +23,14 @@ export class BookManagerComponent implements OnInit, OnDestroy {
   selectedFilter = 'all';
   private searchSubject = new Subject<string>();
 
+  // Modal properties
+  showViewModal = false;
+  showEditModal = false;
+  selectedBook: Book | null = null;
+  editLoading = false;
+  editBookDate = '';
+  selectedCategoryId = '';
+
   filters = [
     { value: 'all', label: 'Tous les livres' },
     { value: 'available', label: 'Disponibles' },
@@ -246,6 +254,41 @@ export class BookManagerComponent implements OnInit, OnDestroy {
     });
   }
 
+  addExampleBook() {
+    const exampleBookData = {
+      titre: "Le Petit Prince - Édition illustrée",
+      isbn: "978-2-07-040857-4",
+      status: "AVAILABLE" as const,
+      datePublication: "1943-04-06T00:00:00",
+      nombrePages: 120,
+      copiesTotal: 3,
+      copiesAvailable: 3,
+      resume: "L'histoire d'un petit prince qui voyage de planète en planète à la recherche de l'amitié et du sens de la vie. Édition illustrée avec de nouvelles images.",
+      categorieId: 2,
+      auteurIds: [1, 3]
+    };
+
+    console.log('📝 Adding example book with data:', exampleBookData);
+
+    this.apiService.addLivreWithExampleSchema(exampleBookData).subscribe({
+      next: (response) => {
+        console.log('✅ Example book added successfully:', response);
+        if (response.data && !response.error) {
+          this.books.unshift(response.data);
+          alert('Exemple de livre ajouté avec succès !');
+          this.loadBooks(); // Refresh the list
+        } else {
+          console.error('Failed to add example book:', response.error);
+          alert('Erreur lors de l\'ajout de l\'exemple de livre');
+        }
+      },
+      error: (error) => {
+        console.error('❌ Error adding example book:', error);
+        alert('Erreur lors de l\'ajout de l\'exemple de livre: ' + (error.message || 'Erreur inconnue'));
+      }
+    });
+  }
+
   handleDeleteBook(bookId: number) {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce livre ?')) {
       this.apiService.deleteBook(bookId.toString()).subscribe({
@@ -290,6 +333,89 @@ export class BookManagerComponent implements OnInit, OnDestroy {
     } else {
       return { class: 'status-partial', text: 'Partiel' };
     }
+  }
+
+  // Modal methods
+  openViewModal(book: Book) {
+    this.selectedBook = { ...book };
+    this.showViewModal = true;
+  }
+
+  closeViewModal() {
+    this.showViewModal = false;
+    this.selectedBook = null;
+  }
+
+  openEditModal(book: Book) {
+    this.selectedBook = { ...book };
+    // datePublication is already a string, so we can use it directly
+    this.editBookDate = book.datePublication || '';
+    this.selectedCategoryId = book.categorie?.id?.toString() || '';
+    this.showEditModal = true;
+  }
+
+  closeEditModal() {
+    this.showEditModal = false;
+    this.selectedBook = null;
+    this.editLoading = false;
+    this.editBookDate = '';
+    this.selectedCategoryId = '';
+  }
+
+  handleEditBook() {
+    if (!this.selectedBook) return;
+
+    this.editLoading = true;
+
+    // Prepare the update data
+    const updateData: any = {
+      titre: this.selectedBook.titre,
+      isbn: this.selectedBook.isbn,
+      copiesTotal: this.selectedBook.copiesTotal,
+      copiesAvailable: this.selectedBook.copiesAvailable,
+      resume: this.selectedBook.resume || '',
+      nombrePages: this.selectedBook.nombrePages || 0,
+      status: this.selectedBook.status || 'AVAILABLE'
+    };
+
+    // Add date if provided (keep as string since API expects string)
+    if (this.editBookDate) {
+      updateData.datePublication = this.editBookDate;
+    }
+
+    // Add category if selected
+    if (this.selectedCategoryId) {
+      const selectedCategory = this.categories.find(cat => cat.id?.toString() === this.selectedCategoryId);
+      if (selectedCategory) {
+        updateData.categorieId = selectedCategory.id;
+      }
+    }
+
+    console.log('🔄 Updating book with data:', updateData);
+
+    this.apiService.updateBook(this.selectedBook.id.toString(), updateData).subscribe({
+      next: (response) => {
+        console.log('✅ Book updated successfully:', response);
+        if (response.data && !response.error) {
+          // Update the book in the local array
+          const bookIndex = this.books.findIndex(b => b.id === this.selectedBook!.id);
+          if (bookIndex !== -1) {
+            this.books[bookIndex] = { ...this.books[bookIndex], ...updateData };
+          }
+          this.closeEditModal();
+          alert('Livre modifié avec succès !');
+        } else {
+          console.error('Failed to update book:', response.error);
+          alert('Erreur lors de la modification du livre');
+        }
+        this.editLoading = false;
+      },
+      error: (error) => {
+        console.error('❌ Error updating book:', error);
+        alert('Erreur lors de la modification du livre: ' + (error.message || 'Erreur inconnue'));
+        this.editLoading = false;
+      }
+    });
   }
 
 }

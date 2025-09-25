@@ -21,6 +21,12 @@ export class UserManagerComponent implements OnInit, OnDestroy {
   selectedFilter = 'all';
   private searchSubject = new Subject<string>();
 
+  // Modal properties
+  showViewModal = false;
+  showEditModal = false;
+  selectedUser: LibraryUser | null = null;
+  editLoading = false;
+
   filters = [
     { value: 'all', label: 'Tous les utilisateurs' },
     { value: 'active', label: 'Actifs' },
@@ -286,5 +292,85 @@ export class UserManagerComponent implements OnInit, OnDestroy {
   // Performance optimization for ngFor
   trackByEmail(index: number, user: LibraryUser): string {
     return user.email;
+  }
+
+  // Modal methods
+  openViewModal(user: LibraryUser) {
+    this.selectedUser = { ...user };
+    this.showViewModal = true;
+  }
+
+  closeViewModal() {
+    this.showViewModal = false;
+    this.selectedUser = null;
+  }
+
+  openEditModal(user: LibraryUser) {
+    this.selectedUser = { ...user };
+    this.showEditModal = true;
+  }
+
+  closeEditModal() {
+    this.showEditModal = false;
+    this.selectedUser = null;
+    this.editLoading = false;
+  }
+
+  handleEditUser() {
+    if (!this.selectedUser) return;
+
+    this.editLoading = true;
+
+    // Prepare the update data
+    const updateData: Partial<LibraryUser> = {
+      prenom: this.selectedUser.prenom,
+      nom: this.selectedUser.nom,
+      email: this.selectedUser.email,
+      telephone: this.selectedUser.telephone,
+      adresse: this.selectedUser.adresse,
+      role: this.selectedUser.role,
+      membershipType: this.selectedUser.membershipType,
+      isActive: this.selectedUser.isActive
+    };
+
+    console.log('🔄 Updating user with data:', updateData);
+
+    // Find user by email since we don't have ID in the current structure
+    const userIndex = this.users.findIndex(u => u.email === this.selectedUser!.email);
+
+    if (userIndex !== -1) {
+      // For now, simulate the API call with local update
+      this.users[userIndex] = { ...this.users[userIndex], ...updateData };
+      this.closeEditModal();
+      alert('Utilisateur modifié avec succès !');
+    } else {
+      alert('Erreur: Utilisateur non trouvé');
+    }
+
+    // TODO: Replace with actual API call when updateUser method is implemented
+    // this.apiService.updateUser(this.selectedUser.id, updateData).subscribe({
+    //   next: (response) => {
+    //     console.log('✅ User updated successfully:', response);
+    //     if (response.data && !response.error) {
+    //       const userIndex = this.users.findIndex(u => u.id === this.selectedUser!.id);
+    //       if (userIndex !== -1) {
+    //         this.users[userIndex] = { ...this.users[userIndex], ...updateData };
+    //       }
+    //       this.closeEditModal();
+    //       alert('Utilisateur modifié avec succès !');
+    //     } else {
+    //       console.error('Failed to update user:', response.error);
+    //       alert('Erreur lors de la modification de l\'utilisateur');
+    //     }
+    //     this.editLoading = false;
+    //   },
+    //   error: (error) => {
+    //     console.error('❌ Error updating user:', error);
+    //     alert('Erreur lors de la modification de l\'utilisateur: ' + (error.message || 'Erreur inconnue'));
+    //     this.editLoading = false;
+    //   }
+    // });
+
+    this.editLoading = false;
   }
 }

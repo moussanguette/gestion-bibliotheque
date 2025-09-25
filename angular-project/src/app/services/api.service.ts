@@ -98,6 +98,14 @@ export class ApiService {
     );
   }
 
+  addLivreWithExampleSchema(livreData: any): Observable<ApiResponse<Book>> {
+    return this.handleRequest(
+      this.getHeaders().then(headers =>
+        this.http.post<Book>(`${environment.api.baseUrl}/livres`, livreData, { headers }).toPromise()
+      )
+    );
+  }
+
   updateBook(id: string, updates: Partial<Book>): Observable<ApiResponse<Book>> {
     return this.handleRequest(
       this.getHeaders().then(headers =>
@@ -584,6 +592,165 @@ export class ApiService {
             totalPages: 0
           }
         });
+      })
+    );
+  }
+
+  // Reports endpoints
+  getReportStatistics(period: string = '6months'): Observable<any> {
+    const params = new HttpParams().set('period', period);
+    return from(
+      this.getHeaders().then(headers =>
+        this.http.get<any>(`${environment.api.baseUrl}/reports/statistics`, {
+          headers,
+          params
+        }).toPromise()
+      )
+    ).pipe(
+      catchError(error => {
+        console.error('Error fetching report statistics:', error);
+        return of({
+          activeLoans: 0,
+          totalBooks: 0,
+          borrowedBooks: 0,
+          totalUsers: 0,
+          availableBooks: 0,
+          overdueLoans: 0,
+          dueSoonLoans: 0,
+          totalLoansThisPeriod: 0,
+          totalReturnsThisPeriod: 0,
+          utilizationRate: 0,
+          averageLoanDuration: 0
+        });
+      })
+    );
+  }
+
+  getOverdueReports(): Observable<any> {
+    return from(
+      this.getHeaders().then(headers =>
+        this.http.get<any>(`${environment.api.baseUrl}/reports/overdue`, { headers }).toPromise()
+      )
+    ).pipe(
+      catchError(error => {
+        console.error('Error fetching overdue reports:', error);
+        return of({
+          totalActive: 0,
+          overdue: 0,
+          dueSoon: 0,
+          onTime: 0,
+          details: []
+        });
+      })
+    );
+  }
+
+  getPopularBooks(limit: number = 10): Observable<any> {
+    const params = new HttpParams().set('limit', limit.toString());
+    return from(
+      this.getHeaders().then(headers =>
+        this.http.get<any>(`${environment.api.baseUrl}/reports/popular-books`, {
+          headers,
+          params
+        }).toPromise()
+      )
+    ).pipe(
+      catchError(error => {
+        console.error('Error fetching popular books:', error);
+        return of([]);
+      })
+    );
+  }
+
+  getCategoriesDistribution(): Observable<any> {
+    return from(
+      this.getHeaders().then(headers =>
+        this.http.get<any>(`${environment.api.baseUrl}/reports/categories-distribution`, { headers }).toPromise()
+      )
+    ).pipe(
+      catchError(error => {
+        console.error('Error fetching categories distribution:', error);
+        return of([]);
+      })
+    );
+  }
+
+  getMonthlyReportData(period: string = '6months'): Observable<any> {
+    const params = new HttpParams().set('period', period);
+    return from(
+      this.getHeaders().then(headers =>
+        this.http.get<any>(`${environment.api.baseUrl}/reports/monthly-data`, {
+          headers,
+          params
+        }).toPromise()
+      )
+    ).pipe(
+      catchError(error => {
+        console.error('Error fetching monthly data:', error);
+        return of([]);
+      })
+    );
+  }
+
+  getActiveUsers(limit: number = 50): Observable<any> {
+    const params = new HttpParams().set('limit', limit.toString());
+    return from(
+      this.getHeaders().then(headers =>
+        this.http.get<any>(`${environment.api.baseUrl}/reports/active-users`, {
+          headers,
+          params
+        }).toPromise()
+      )
+    ).pipe(
+      catchError(error => {
+        console.error('Error fetching active users:', error);
+        return of([]);
+      })
+    );
+  }
+
+  getFullReport(period: string = '6months', format: string = 'json'): Observable<any> {
+    const params = new HttpParams()
+      .set('period', period)
+      .set('format', format);
+    return from(
+      this.getHeaders().then(headers =>
+        this.http.get<any>(`${environment.api.baseUrl}/reports/full`, {
+          headers,
+          params
+        }).toPromise()
+      )
+    ).pipe(
+      catchError(error => {
+        console.error('Error fetching full report:', error);
+        return of({
+          metadata: {},
+          statistiques: {},
+          donneesRetards: {},
+          topLivres: [],
+          distributionCategories: [],
+          donnesMensuelles: [],
+          utilisateursActifs: [],
+          performanceSysteme: {},
+          recommandations: []
+        });
+      })
+    );
+  }
+
+  exportReport(reportData: any): Observable<Blob> {
+    return from(
+      this.getHeaders().then(headers =>
+        this.http.post(`${environment.api.baseUrl}/reports/export`, reportData, {
+          headers,
+          responseType: 'blob'
+        }).toPromise()
+      )
+    ).pipe(
+      map(blob => blob || new Blob()),
+      catchError(error => {
+        console.error('Error exporting report:', error);
+        return of(new Blob());
       })
     );
   }

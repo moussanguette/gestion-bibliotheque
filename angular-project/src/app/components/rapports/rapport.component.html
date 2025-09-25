@@ -1,0 +1,558 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-2xl font-bold">Rapports et statistiques</h2>
+      <p class="text-gray-600">Analyses détaillées de votre bibliothèque</p>
+    </div>
+    <div class="flex items-center space-x-3">
+      <select
+        class="w-[180px] px-3 py-2 border rounded-md bg-white"
+        [value]="selectedPeriod"
+        (change)="onPeriodChange($event)">
+        <option value="1month">1 mois</option>
+        <option value="3months">3 mois</option>
+        <option value="6months">6 mois</option>
+        <option value="1year">1 année</option>
+      </select>
+      <button
+        class="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        (click)="exportReport()">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        Exporter
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading state -->
+  <div *ngIf="isLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div *ngFor="let item of [].constructor(4); trackBy: trackByIndex" class="animate-pulse">
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="h-20 bg-gray-200 rounded"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content when loaded -->
+  <div *ngIf="!isLoading">
+    <!-- Key metrics -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="bg-white rounded-lg shadow">
+        <div class="flex flex-row items-center justify-between space-y-0 pb-2 p-6">
+          <h3 class="text-sm font-medium">Total des prêts</h3>
+          <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+          </svg>
+        </div>
+        <div class="p-6 pt-0">
+          <div class="text-2xl font-bold">{{ stats.totalLoansThisPeriod || 0 }}</div>
+          <p class="text-xs text-gray-500">
+            {{ stats.activeLoans || 0 }} actifs
+          </p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow">
+        <div class="flex flex-row items-center justify-between space-y-0 pb-2 p-6">
+          <h3 class="text-sm font-medium">Taux d'utilisation</h3>
+          <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+          </svg>
+        </div>
+        <div class="p-6 pt-0">
+          <div class="text-2xl font-bold">{{ utilizationRate }}%</div>
+          <p class="text-xs text-gray-500">
+            Livres empruntés / total
+          </p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow">
+        <div class="flex flex-row items-center justify-between space-y-0 pb-2 p-6">
+          <h3 class="text-sm font-medium">Utilisateurs actifs</h3>
+          <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+          </svg>
+        </div>
+        <div class="p-6 pt-0">
+          <div class="text-2xl font-bold">{{ stats.totalUsers || 0 }}</div>
+          <p class="text-xs text-gray-500">
+            Membres inscrits
+          </p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow">
+        <div class="flex flex-row items-center justify-between space-y-0 pb-2 p-6">
+          <h3 class="text-sm font-medium">Retards</h3>
+          <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.084 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+          </svg>
+        </div>
+        <div class="p-6 pt-0">
+          <div class="text-2xl font-bold text-red-600">{{ overdueStats.overdue || 0 }}</div>
+          <p class="text-xs text-gray-500">
+            {{ overdueStats.dueSoon || 0 }} à échéance bientôt
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="border-b border-gray-200">
+        <nav class="-mb-px flex space-x-8 px-6">
+          <button
+            class="py-4 px-1 border-b-2 font-medium text-sm"
+            [class.border-blue-500]="activeTab === 'activity'"
+            [class.text-blue-600]="activeTab === 'activity'"
+            [class.border-transparent]="activeTab !== 'activity'"
+            [class.text-gray-500]="activeTab !== 'activity'"
+            (click)="setActiveTab('activity')">
+            Activité
+          </button>
+          <button
+            class="py-4 px-1 border-b-2 font-medium text-sm"
+            [class.border-blue-500]="activeTab === 'categories'"
+            [class.text-blue-600]="activeTab === 'categories'"
+            [class.border-transparent]="activeTab !== 'categories'"
+            [class.text-gray-500]="activeTab !== 'categories'"
+            (click)="setActiveTab('categories')">
+            Catégories
+          </button>
+          <button
+            class="py-4 px-1 border-b-2 font-medium text-sm"
+            [class.border-blue-500]="activeTab === 'popular'"
+            [class.text-blue-600]="activeTab === 'popular'"
+            [class.border-transparent]="activeTab !== 'popular'"
+            [class.text-gray-500]="activeTab !== 'popular'"
+            (click)="setActiveTab('popular')">
+            Populaires
+          </button>
+          <button
+            class="py-4 px-1 border-b-2 font-medium text-sm"
+            [class.border-blue-500]="activeTab === 'overdue'"
+            [class.text-blue-600]="activeTab === 'overdue'"
+            [class.border-transparent]="activeTab !== 'overdue'"
+            [class.text-gray-500]="activeTab !== 'overdue'"
+            (click)="setActiveTab('overdue')">
+            Retards
+          </button>
+        </nav>
+      </div>
+
+      <!-- Activity Tab -->
+      <div *ngIf="activeTab === 'activity'" class="p-6">
+        <div class="bg-white">
+          <div class="mb-6">
+            <h3 class="text-lg font-semibold">Évolution des prêts et retours</h3>
+          </div>
+          <div class="h-80 w-full">
+            <canvas
+              baseChart
+              [data]="loansReturnsChartData"
+              [options]="chartOptions"
+              [type]="loansReturnsChartType"
+              class="w-full h-full">
+            </canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Categories Tab -->
+      <div *ngIf="activeTab === 'categories'" class="p-6">
+        <div class="bg-white">
+          <div class="mb-6">
+            <h3 class="text-lg font-semibold">Distribution par catégorie</h3>
+          </div>
+          <div class="h-80 w-full">
+            <canvas
+              baseChart
+              [data]="categoryChartData"
+              [options]="doughnutOptions"
+              [type]="categoryChartType"
+              class="w-full h-full">
+            </canvas>
+          </div>
+          <!-- Category list -->
+          <div class="mt-6">
+            <h4 class="text-md font-medium mb-4">Détails par catégorie :</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div *ngFor="let category of categoryData; trackBy: trackByIndex" class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                <div>
+                  <span class="font-medium">{{ category.name }}</span>
+                  <div class="text-sm text-gray-500">{{ category.percentage }}% du total</div>
+                </div>
+                <div class="flex items-center space-x-4">
+                  <div class="text-right">
+                    <div class="font-semibold">{{ category.value }} livres</div>
+                    <div class="text-sm text-gray-500">{{ category.loansCount }} emprunts</div>
+                  </div>
+                  <div class="flex space-x-1">
+                    <button
+                      (click)="viewCategoryDetails(category)"
+                      class="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors duration-200"
+                      title="Voir détails">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                      </svg>
+                    </button>
+                    <button
+                      (click)="editCategory(category)"
+                      class="p-2 text-green-600 hover:bg-green-50 rounded-md transition-colors duration-200"
+                      title="Modifier">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                      </svg>
+                    </button>
+                    <button
+                      (click)="deleteCategory(category)"
+                      class="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors duration-200"
+                      title="Supprimer">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Popular Tab -->
+      <div *ngIf="activeTab === 'popular'" class="p-6">
+        <div class="bg-white">
+          <div class="mb-6">
+            <h3 class="text-lg font-semibold">Livres les plus empruntés</h3>
+          </div>
+          <div class="space-y-4">
+            <div *ngFor="let book of topBooksData; let i = index; trackBy: trackByIndex"
+                 class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div class="flex items-center space-x-4">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <span class="text-blue-600 font-bold text-sm">{{ i + 1 }}</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium text-gray-900 truncate">{{ book.title }}</p>
+                  <p class="text-xs text-gray-500 truncate">{{ book.author }} - {{ book.category }}</p>
+                  <p class="text-xs text-gray-400">ISBN: {{ book.isbn }}</p>
+                </div>
+              </div>
+              <div class="flex items-center space-x-4">
+                <div class="flex flex-col items-end space-y-1">
+                  <span class="text-sm text-gray-500">{{ book.count }} prêts</span>
+                  <div class="w-16 h-2 bg-gray-200 rounded-full">
+                    <div class="h-2 bg-blue-600 rounded-full" [style.width.%]="(book.count / (topBooksData[0].count || 1)) * 100"></div>
+                  </div>
+                </div>
+                <div class="flex space-x-1">
+                  <button
+                    (click)="viewBookDetails(book)"
+                    class="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors duration-200"
+                    title="Voir détails">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                  </button>
+                  <button
+                    (click)="editBook(book)"
+                    class="p-2 text-green-600 hover:bg-green-50 rounded-md transition-colors duration-200"
+                    title="Modifier">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                  </button>
+                  <button
+                    (click)="deleteBook(book)"
+                    class="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors duration-200"
+                    title="Supprimer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Overdue Tab -->
+      <div *ngIf="activeTab === 'overdue'" class="p-6 space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-white rounded-lg border border-gray-200 p-6">
+            <div class="mb-4">
+              <h3 class="text-lg font-semibold">Prêts actifs</h3>
+            </div>
+            <div class="text-3xl font-bold text-blue-600">{{ overdueStats.totalActive || 0 }}</div>
+            <p class="text-sm text-gray-600">Total des prêts en cours</p>
+          </div>
+
+          <div class="bg-white rounded-lg border border-gray-200 p-6">
+            <div class="mb-4">
+              <h3 class="text-lg font-semibold">En retard</h3>
+            </div>
+            <div class="text-3xl font-bold text-red-600">{{ overdueStats.overdue || 0 }}</div>
+            <p class="text-sm text-gray-600">Prêts dépassant l'échéance</p>
+          </div>
+
+          <div class="bg-white rounded-lg border border-gray-200 p-6">
+            <div class="mb-4">
+              <h3 class="text-lg font-semibold">À échéance bientôt</h3>
+            </div>
+            <div class="text-3xl font-bold text-yellow-600">{{ overdueStats.dueSoon || 0 }}</div>
+            <p class="text-sm text-gray-600">Dans les 7 prochains jours</p>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg border border-gray-200 p-6">
+          <div class="mb-6">
+            <h3 class="text-lg font-semibold">État des prêts</h3>
+          </div>
+          <div class="h-80 w-full">
+            <canvas
+              baseChart
+              [data]="overdueStatusChartData"
+              [options]="doughnutOptions"
+              [type]="overdueStatusChartType"
+              class="w-full h-full">
+            </canvas>
+          </div>
+          <!-- Status summary -->
+          <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
+              <div class="w-4 h-4 bg-green-500 rounded-full"></div>
+              <div>
+                <p class="text-sm font-medium">À jour</p>
+                <p class="text-sm text-gray-600">{{ overdueStats.onTime || 0 }} prêts</p>
+              </div>
+            </div>
+            <div class="flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg">
+              <div class="w-4 h-4 bg-yellow-500 rounded-full"></div>
+              <div>
+                <p class="text-sm font-medium">Échéance proche</p>
+                <p class="text-sm text-gray-600">{{ overdueStats.dueSoon || 0 }} prêts</p>
+              </div>
+            </div>
+            <div class="flex items-center space-x-3 p-3 bg-red-50 rounded-lg">
+              <div class="w-4 h-4 bg-red-500 rounded-full"></div>
+              <div>
+                <p class="text-sm font-medium">En retard</p>
+                <p class="text-sm text-gray-600">{{ overdueStats.overdue || 0 }} prêts</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Book Details Modal -->
+  <div *ngIf="showBookDetailsModal" class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+      <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" (click)="closeBookDetailsModal()"></div>
+
+      <div class="inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-medium text-gray-900">Détails du livre</h3>
+          <button (click)="closeBookDetailsModal()" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div *ngIf="selectedBook" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Titre</label>
+            <p class="mt-1 text-sm text-gray-900">{{ selectedBook.title }}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Auteur</label>
+            <p class="mt-1 text-sm text-gray-900">{{ selectedBook.author }}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Catégorie</label>
+            <p class="mt-1 text-sm text-gray-900">{{ selectedBook.category }}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">ISBN</label>
+            <p class="mt-1 text-sm text-gray-900">{{ selectedBook.isbn }}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Nombre de prêts</label>
+            <p class="mt-1 text-sm text-gray-900">{{ selectedBook.count }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Book Edit Modal -->
+  <div *ngIf="showBookEditModal" class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+      <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" (click)="closeBookEditModal()"></div>
+
+      <div class="inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-medium text-gray-900">Modifier le livre</h3>
+          <button (click)="closeBookEditModal()" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <form *ngIf="selectedBook" (ngSubmit)="updateBook()" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Titre</label>
+            <input type="text" [(ngModel)]="editBookForm.title" name="title"
+                   class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Auteur</label>
+            <input type="text" [(ngModel)]="editBookForm.author" name="author"
+                   class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Catégorie</label>
+            <input type="text" [(ngModel)]="editBookForm.category" name="category"
+                   class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">ISBN</label>
+            <input type="text" [(ngModel)]="editBookForm.isbn" name="isbn"
+                   class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+
+          <div class="flex justify-end space-x-3 pt-4">
+            <button type="button" (click)="closeBookEditModal()"
+                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+              Annuler
+            </button>
+            <button type="submit" [disabled]="bookUpdateLoading"
+                    class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50">
+              <span *ngIf="bookUpdateLoading">Enregistrement...</span>
+              <span *ngIf="!bookUpdateLoading">Enregistrer</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Details Modal -->
+  <div *ngIf="showCategoryDetailsModal" class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+      <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" (click)="closeCategoryDetailsModal()"></div>
+
+      <div class="inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-medium text-gray-900">Détails de la catégorie</h3>
+          <button (click)="closeCategoryDetailsModal()" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div *ngIf="selectedCategory" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Nom</label>
+            <p class="mt-1 text-sm text-gray-900">{{ selectedCategory.name }}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Nombre de livres</label>
+            <p class="mt-1 text-sm text-gray-900">{{ selectedCategory.value }}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Nombre d'emprunts</label>
+            <p class="mt-1 text-sm text-gray-900">{{ selectedCategory.loansCount }}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Pourcentage du total</label>
+            <p class="mt-1 text-sm text-gray-900">{{ selectedCategory.percentage }}%</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Edit Modal -->
+  <div *ngIf="showCategoryEditModal" class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+      <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" (click)="closeCategoryEditModal()"></div>
+
+      <div class="inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-medium text-gray-900">Modifier la catégorie</h3>
+          <button (click)="closeCategoryEditModal()" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <form *ngIf="selectedCategory" (ngSubmit)="updateCategory()" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Nom</label>
+            <input type="text" [(ngModel)]="editCategoryForm.name" name="name"
+                   class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+
+          <div class="flex justify-end space-x-3 pt-4">
+            <button type="button" (click)="closeCategoryEditModal()"
+                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+              Annuler
+            </button>
+            <button type="submit" [disabled]="categoryUpdateLoading"
+                    class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50">
+              <span *ngIf="categoryUpdateLoading">Enregistrement...</span>
+              <span *ngIf="!categoryUpdateLoading">Enregistrer</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div *ngIf="showDeleteModal" class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+      <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" (click)="closeDeleteModal()"></div>
+
+      <div class="inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+        <div class="flex items-center mb-4">
+          <div class="flex-shrink-0">
+            <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+          </div>
+          <div class="ml-4">
+            <h3 class="text-lg font-medium text-gray-900">Confirmer la suppression</h3>
+            <p class="mt-2 text-sm text-gray-500">
+              Êtes-vous sûr de vouloir supprimer cet élément ? Cette action ne peut pas être annulée.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex justify-end space-x-3">
+          <button type="button" (click)="closeDeleteModal()"
+                  class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+            Annuler
+          </button>
+          <button (click)="confirmDelete()" [disabled]="deleteLoading"
+                  class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 disabled:opacity-50">
+            <span *ngIf="deleteLoading">Suppression...</span>
+            <span *ngIf="!deleteLoading">Supprimer</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

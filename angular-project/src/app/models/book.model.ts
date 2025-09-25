@@ -26,6 +26,19 @@ export interface BookFormData {
   auteurIds: number[];
 }
 
+export interface LivreExampleSchema {
+  titre: string;
+  isbn: string;
+  status: 'AVAILABLE' | 'UNAVAILABLE' | 'PARTIAL';
+  datePublication: string;
+  nombrePages: number;
+  copiesTotal: number;
+  copiesAvailable: number;
+  resume: string;
+  categorieId: number;
+  auteurIds: number[];
+}
+
 export interface Author {
   id: number;
   nom: string;

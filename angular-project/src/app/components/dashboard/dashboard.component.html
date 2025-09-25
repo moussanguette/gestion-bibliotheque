@@ -34,7 +34,7 @@
 
           <!-- User menu -->
           <div class="flex items-center space-x-2">
-            <span class="text-sm text-gray-700">Bienvenue, {{user?.email || 'Utilisateur'}}</span>
+            <span class="text-sm text-gray-700">Bienvenue, {{user?.username || 'Utilisateur'}}</span>
             <button
               (click)="handleLogout()"
               class="logout-btn"
@@ -109,13 +109,13 @@
               </div>
               <div class="card-content">
                 <div class="due-list" *ngIf="!loading && dueSoonEmprunts.length > 0">
-                  <div class="due-item" [ngClass]="getDueDateLabel(emprunt.returnDate, emprunt.empruntDate).class" *ngFor="let emprunt of dueSoonEmprunts">
+                  <div class="due-item" [ngClass]="getDueDateLabel(emprunt.dueDate, emprunt.empruntDate).class" *ngFor="let emprunt of dueSoonEmprunts">
                     <div class="due-details">
                       <p class="due-title">{{ emprunt.livre?.titre || 'Titre indisponible' }}</p>
                       <p class="due-user">{{ emprunt.user?.nom || emprunt.user?.name || 'Utilisateur inconnu' }}</p>
                     </div>
-                    <span class="due-badge" [ngClass]="getDueDateLabel(emprunt.returnDate, emprunt.empruntDate).class">
-                      {{ getDueDateLabel(emprunt.returnDate, emprunt.empruntDate).text }}
+                    <span class="due-badge" [ngClass]="getDueDateLabel(emprunt.dueDate, emprunt.empruntDate).class">
+                      {{ getDueDateLabel(emprunt.dueDate, emprunt.empruntDate).text }}
                     </span>
                   </div>
                 </div>
@@ -149,11 +149,9 @@
           <app-emprunt-manager></app-emprunt-manager>
         </div>
 
-
-        <!-- Autres onglets (placeholder) -->
-        <div *ngSwitchDefault class="placeholder-content">
-          <h3 class="placeholder-title">{{getActiveTabLabel()}} - En cours de développement</h3>
-          <p class="placeholder-text">Cette section sera implémentée prochainement.</p>
+        <!-- Rapport Tab -->
+        <div *ngSwitchCase="'reports'">
+            <app-rapport></app-rapport>
         </div>
       </div>
     </div>

@@ -111,14 +111,9 @@ src/
 ## 🔑 Configuration de l'authentification
 
 ### Compte de démonstration
-- **Email**: admin@demo.fr
-- **Mot de passe**: demo123
+- **Username**: admin
+- **Mot de passe**: admin123
 
-### Configuration Supabase
-1. Créez un projet sur [Supabase](https://supabase.com)
-2. Récupérez votre URL et clé anonyme
-3. Mettez à jour les variables d'environnement
-4. Configurez les politiques RLS (Row Level Security) selon vos besoins
 
 ## 📊 Fonctionnalités principales
 

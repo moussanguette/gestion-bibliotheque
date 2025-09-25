@@ -12,6 +12,7 @@ import { BookManagerComponent } from '../book-manager/book-manager.component';
 import { UserManagerComponent } from '../user-manager/user-manager.component';
 import { EmpruntManagerComponent } from '../emprunt-manager/emprunt-manager.component';
 import { NotificationBannerComponent } from '../notification-banner/notification-banner.component';
+import { RapportComponent } from '../rapports/rapport.component';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -25,7 +26,8 @@ import { environment } from '../../../environments/environment';
     BookManagerComponent,
     UserManagerComponent,
     EmpruntManagerComponent,
-    NotificationBannerComponent
+    NotificationBannerComponent,
+    RapportComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
@@ -175,25 +177,21 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  getDueDateLabel(returnDate: string, empruntDate: string): { text: string, class: string } {
-    if (!returnDate || !empruntDate) {
+  getDueDateLabel(dueDate: Date | string, empruntDate: Date | string): { text: string, class: string } {
+    if (!dueDate || !empruntDate) {
       return { text: 'Date non définie', class: 'error' };
     }
 
     const today = new Date();
-    const returnDateObj = new Date(returnDate);
-    const borrowDate = new Date(empruntDate);
+    const dueDateObj = new Date(dueDate);
+    const borrowDateObj = new Date(empruntDate);
 
     // Vérifier si les dates sont valides
-    if (isNaN(returnDateObj.getTime()) || isNaN(borrowDate.getTime())) {
+    if (isNaN(dueDateObj.getTime()) || isNaN(borrowDateObj.getTime())) {
       return { text: 'Date invalide', class: 'error' };
     }
 
-    // Calculer la date d'échéance : dateRetour - dateEmprunt
-    const loanDurationMs = returnDateObj.getTime() - borrowDate.getTime();
-    const dueDate = new Date(borrowDate.getTime() + loanDurationMs);
-
-    const diffTime = dueDate.getTime() - today.getTime();
+    const diffTime = dueDateObj.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
     if (diffDays < 0) {
@@ -211,7 +209,7 @@ export class DashboardComponent implements OnInit {
 
   openEditModal(emprunt: any) {
     this.selectedEmprunt = emprunt;
-    this.newDateRetour = emprunt.returnDate || '';
+    this.newDateRetour = emprunt.dueDate || '';
     this.showEditModal = true;
   }
 
@@ -224,7 +222,7 @@ export class DashboardComponent implements OnInit {
 
   async updateDateRetour() {
     if (!this.selectedEmprunt || !this.newDateRetour) {
-      this.notificationService.showError('Veuillez sélectionner une date de retour');
+      this.notificationService.showError('Veuillez sélectionner une date d\'échéance');
       return;
     }
 
@@ -232,15 +230,15 @@ export class DashboardComponent implements OnInit {
 
     try {
       await this.apiService.updateEmprunt(this.selectedEmprunt.id, {
-        returnDate: new Date(this.newDateRetour)
+        dueDate: new Date(this.newDateRetour)
       }).toPromise();
 
-      this.notificationService.showSuccess('Date de retour modifiée avec succès');
+      this.notificationService.showSuccess('Date d\'échéance modifiée avec succès');
 
       // Mettre à jour l'emprunt dans la liste locale
       const index = this.dueSoonEmprunts.findIndex(e => e.id === this.selectedEmprunt.id);
       if (index !== -1) {
-        this.dueSoonEmprunts[index].returnDate = this.newDateRetour;
+        this.dueSoonEmprunts[index].dueDate = this.newDateRetour;
       }
 
       this.closeEditModal();
@@ -250,7 +248,7 @@ export class DashboardComponent implements OnInit {
 
     } catch (error) {
       console.error('Erreur lors de la mise à jour:', error);
-      this.notificationService.showError('Erreur lors de la modification de la date de retour');
+      this.notificationService.showError('Erreur lors de la modification de la date d\'échéance');
     } finally {
       this.modalLoading = false;
     }
