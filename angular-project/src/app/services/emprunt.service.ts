@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, of } from 'rxjs';
-import { map, tap, catchError } from 'rxjs/operators';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable, BehaviorSubject, of, from } from 'rxjs';
+import { map, tap, catchError, switchMap } from 'rxjs/operators';
 import { Emprunt, CreateEmpruntRequest, EmpruntStats, BookSummary, UserSummary } from '../models/emprunt.model';
 import { Book, Author } from '../models/book.model';
 import { LibraryUser } from '../models/user.model';
 import { ApiService } from './api.service';
+import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -22,64 +23,111 @@ export class EmpruntService {
 
   constructor(
     private http: HttpClient,
-    private apiService: ApiService
+    private apiService: ApiService,
+    private authService: AuthService
   ) {}
+
+  private async getHeaders(): Promise<HttpHeaders> {
+    const headers = await this.authService.getAuthHeaders();
+    return new HttpHeaders(headers);
+  }
 
   // Get all emprunts
   getAllEmprunts(): Observable<Emprunt[]> {
-    return this.http.get<any>(`${this.apiUrl}`)
-      .pipe(
-        map(response => {
-          const backendEmprunts = response || [];
-          return backendEmprunts.map((backendEmprunt: any) => this.transformBackendEmprunt(backendEmprunt));
-        }),
-        tap(emprunts => this.empruntsSubject.next(emprunts))
-      );
+    return from(this.getHeaders()).pipe(
+      switchMap(headers =>
+        this.http.get<any>(`${this.apiUrl}`, { headers })
+      ),
+      map(response => {
+        const backendEmprunts = response || [];
+        return backendEmprunts.map((backendEmprunt: any) => this.transformBackendEmprunt(backendEmprunt));
+      }),
+      tap(emprunts => this.empruntsSubject.next(emprunts)),
+      catchError(error => {
+        console.error('Error loading emprunts:', error);
+        throw error;
+      })
+    );
   }
 
   // Get emprunt by ID
   getEmpruntById(id: string): Observable<Emprunt> {
-    return this.http.get<{ data: Emprunt }>(`${this.apiUrl}/${id}`)
-      .pipe(map(response => response.data));
+    return from(this.getHeaders()).pipe(
+      switchMap(headers =>
+        this.http.get<{ data: Emprunt }>(`${this.apiUrl}/${id}`, { headers })
+      ),
+      map(response => response.data)
+    );
   }
 
   // Create new emprunt
   createEmprunt(emprunt: CreateEmpruntRequest): Observable<Emprunt> {
-    return this.http.post<any>(`${this.apiUrl}`, emprunt)
-      .pipe(
-        map(response => this.transformBackendEmprunt(response)),
-        tap(() => this.refreshEmprunts())
-      );
+    return from(this.getHeaders()).pipe(
+      switchMap(headers =>
+        this.http.post<any>(`${this.apiUrl}`, emprunt, { headers })
+      ),
+      map(response => this.transformBackendEmprunt(response)),
+      tap(() => this.refreshEmprunts())
+    );
   }
 
   // Return book
   returnBook(empruntId: string): Observable<Emprunt> {
-    return this.http.put<{ data: Emprunt }>(`${this.apiUrl}/${empruntId}/retourner`, {})
-      .pipe(
-        map(response => response.data),
-        tap(() => this.refreshEmprunts())
-      );
+    return from(this.getHeaders()).pipe(
+      switchMap(headers =>
+        this.http.put<{ data: Emprunt }>(`${this.apiUrl}/${empruntId}/retourner`, {}, { headers })
+      ),
+      map(response => response.data),
+      tap(() => this.refreshEmprunts())
+    );
   }
 
   // Renew emprunt
   renewEmprunt(empruntId: string): Observable<Emprunt> {
-    return this.http.patch<{ data: Emprunt }>(`${this.apiUrl}/${empruntId}`, {})
-      .pipe(
-        map(response => response.data),
-        tap(() => this.refreshEmprunts())
-      );
+    return from(this.getHeaders()).pipe(
+      switchMap(headers =>
+        this.http.patch<{ data: Emprunt }>(`${this.apiUrl}/${empruntId}`, {}, { headers })
+      ),
+      map(response => response.data),
+      tap(() => this.refreshEmprunts())
+    );
   }
 
   // Get overdue emprunts
   getOverdueEmprunts(): Observable<Emprunt[]> {
-    return this.http.get<{ data: Emprunt[] }>(`${this.apiUrl}/retard`)
-      .pipe(map(response => response.data || []));
+    return from(this.getHeaders()).pipe(
+      switchMap(headers =>
+        this.http.get<{ data: Emprunt[] }>(`${this.apiUrl}/retard`, { headers })
+      ),
+      map(response => response.data || [])
+    );
   }
 
   // Get emprunts by user
   getEmpruntsByUser(userId: string): Observable<Emprunt[]> {
-    return this.http.get<{ data: Emprunt[] }>(`${this.apiUrl}/user/${userId}`)
-      .pipe(map(response => response.data || []));
+    console.log('🔍 Fetching emprunts for user ID:', userId);
+    return from(this.getHeaders()).pipe(
+      switchMap(headers => {
+        const url = `${this.apiUrl}/user/${userId}`;
+        console.log('📡 Request URL:', url);
+        console.log('🔐 Headers:', headers);
+        return this.http.get<any>(url, { headers });
+      }),
+      map(response => {
+        console.log('📋 Raw emprunts response for user:', response);
+        const backendEmprunts = response || [];
+        const transformedEmprunts = backendEmprunts.map((backendEmprunt: any) => this.transformBackendEmprunt(backendEmprunt));
+        console.log('✅ Transformed emprunts:', transformedEmprunts);
+        return transformedEmprunts;
+      }),
+      catchError(error => {
+        console.error('❌ Complete error object:', error);
+        console.error('❌ Error status:', error.status);
+        console.error('❌ Error message:', error.message);
+        console.error('❌ Error body:', error.error);
+        throw error;
+      })
+    );
   }
 
   // Get available books for emprunt
@@ -172,26 +220,42 @@ export class EmpruntService {
 
   // Get emprunts by status
   getEmpruntsByStatus(status: string): Observable<Emprunt[]> {
-    return this.http.get<{ data: Emprunt[] }>(`${this.apiUrl}/status/${status}`)
-      .pipe(map(response => response.data || []));
+    return from(this.getHeaders()).pipe(
+      switchMap(headers =>
+        this.http.get<{ data: Emprunt[] }>(`${this.apiUrl}/status/${status}`, { headers })
+      ),
+      map(response => response.data || [])
+    );
   }
 
   // Get active emprunts
   getActiveEmprunts(): Observable<Emprunt[]> {
-    return this.http.get<{ data: Emprunt[] }>(`${this.apiUrl}/actifs`)
-      .pipe(map(response => response.data || []));
+    return from(this.getHeaders()).pipe(
+      switchMap(headers =>
+        this.http.get<{ data: Emprunt[] }>(`${this.apiUrl}/actifs`, { headers })
+      ),
+      map(response => response.data || [])
+    );
   }
 
   // Get emprunts expiring soon
   getEmpruntsExpiringSoon(): Observable<Emprunt[]> {
-    return this.http.get<{ data: Emprunt[] }>(`${this.apiUrl}/bientot-echeance`)
-      .pipe(map(response => response.data || []));
+    return from(this.getHeaders()).pipe(
+      switchMap(headers =>
+        this.http.get<{ data: Emprunt[] }>(`${this.apiUrl}/bientot-echeance`, { headers })
+      ),
+      map(response => response.data || [])
+    );
   }
 
   // Get emprunts by book ID
   getEmpruntsByBook(livreId: string): Observable<Emprunt[]> {
-    return this.http.get<{ data: Emprunt[] }>(`${this.apiUrl}/livre/${livreId}`)
-      .pipe(map(response => response.data || []));
+    return from(this.getHeaders()).pipe(
+      switchMap(headers =>
+        this.http.get<{ data: Emprunt[] }>(`${this.apiUrl}/livre/${livreId}`, { headers })
+      ),
+      map(response => response.data || [])
+    );
   }
 
   // Check book availability

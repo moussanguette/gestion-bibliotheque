@@ -7,12 +7,16 @@ import { map, startWith } from 'rxjs/operators';
 import { EmpruntService } from '../../services/emprunt.service';
 import { ApiService } from '../../services/api.service';
 import { NotificationService } from '../../services/notification.service';
+import { AuthService } from '../../services/auth.service';
+import { PermissionService } from '../../services/permission.service';
+import { HasPermissionDirective } from '../../directives/has-permission.directive';
 import { Emprunt, CreateEmpruntRequest, BookSummary, UserSummary, EmpruntFilter } from '../../models/emprunt.model';
+import { User } from '../../models/user.model';
 
 @Component({
   selector: 'app-emprunt-manager',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, HasPermissionDirective],
   templateUrl: './emprunt-manager.component.html',
   styleUrls: ['./emprunt-manager.component.css']
 })
@@ -25,6 +29,7 @@ export class EmpruntManagerComponent implements OnInit, OnDestroy {
   isLoading = false;
   isCreatingEmprunt = false;
   isCreateDialogOpen = false;
+  currentUser: User | null = null;
 
   // Modal properties
   showEditModal = false;
@@ -51,6 +56,8 @@ export class EmpruntManagerComponent implements OnInit, OnDestroy {
     public empruntService: EmpruntService,
     private apiService: ApiService,
     private notificationService: NotificationService,
+    private authService: AuthService,
+    public permissionService: PermissionService,
     private fb: FormBuilder
   ) {
     this.empruntForm = this.fb.group({
@@ -62,6 +69,7 @@ export class EmpruntManagerComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.currentUser = this.authService.getCurrentUser();
     this.loadData();
     this.setupFiltering();
   }
@@ -73,7 +81,12 @@ export class EmpruntManagerComponent implements OnInit, OnDestroy {
   private loadData(): void {
     this.isLoading = true;
 
-    const empruntsSubscription = this.empruntService.getAllEmprunts().subscribe({
+    // LECTEUR ne charge que ses propres emprunts, ADMIN/BIBLIOTHECAIRE chargent tous
+    const empruntsObservable = this.permissionService.canViewAllEmprunts()
+      ? this.empruntService.getAllEmprunts()
+      : this.empruntService.getEmpruntsByUser(this.currentUser?.id || '');
+
+    const empruntsSubscription = empruntsObservable.subscribe({
       next: (emprunts) => {
         this.emprunts = emprunts;
         this.filterEmprunts(); // Appliquer les filtres après le chargement
@@ -100,23 +113,26 @@ export class EmpruntManagerComponent implements OnInit, OnDestroy {
       }
     });
 
-    const usersSubscription = this.empruntService.getEligibleUsers().subscribe({
-      next: (users) => {
-        this.users = users;
-        console.log('👥 Loaded users for emprunt component:', users.length);
-        if (users.length === 0) {
-          this.notificationService.showWarning('Aucun utilisateur éligible pour créer un prêt');
+    // Charger les utilisateurs seulement pour ADMIN/BIBLIOTHECAIRE
+    if (this.permissionService.canViewAllEmprunts()) {
+      const usersSubscription = this.empruntService.getEligibleUsers().subscribe({
+        next: (users) => {
+          this.users = users;
+          console.log('👥 Loaded users for emprunt component:', users.length);
+          if (users.length === 0) {
+            this.notificationService.showWarning('Aucun utilisateur éligible pour créer un prêt');
+          }
+        },
+        error: (error) => {
+          console.error('❌ Error loading users:', error);
+          this.notificationService.showError('Erreur lors du chargement des utilisateurs éligibles');
         }
-      },
-      error: (error) => {
-        console.error('❌ Error loading users:', error);
-        this.notificationService.showError('Erreur lors du chargement des utilisateurs éligibles');
-      }
-    });
+      });
+      this.subscriptions.add(usersSubscription);
+    }
 
     this.subscriptions.add(empruntsSubscription);
     this.subscriptions.add(booksSubscription);
-    this.subscriptions.add(usersSubscription);
   }
 
   private setupFiltering(): void {
@@ -141,10 +157,17 @@ export class EmpruntManagerComponent implements OnInit, OnDestroy {
     this.isCreateDialogOpen = true;
     this.empruntForm.reset();
 
-    // Set default duration to 14 days
-    this.empruntForm.patchValue({
+    // Set default values
+    const formValues: any = {
       dureeJours: 14
-    });
+    };
+
+    // For LECTEUR, automatically set their own user ID
+    if (!this.permissionService.canViewAllEmprunts() && this.currentUser) {
+      formValues.userId = this.currentUser.id;
+    }
+
+    this.empruntForm.patchValue(formValues);
 
     // Reload books and users data to ensure we have the latest available data
     this.loadBooksAndUsers();
@@ -163,17 +186,19 @@ export class EmpruntManagerComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Load users
-    this.empruntService.getEligibleUsers().subscribe({
-      next: (users) => {
-        this.users = users;
-        console.log('👥 Refreshed users for dialog:', users.length);
-      },
-      error: (error) => {
-        console.error('❌ Error refreshing users:', error);
-        this.notificationService.showError('Erreur lors du chargement des utilisateurs');
-      }
-    });
+    // Load users only for ADMIN and BIBLIOTHECAIRE
+    if (this.permissionService.canViewAllEmprunts()) {
+      this.empruntService.getEligibleUsers().subscribe({
+        next: (users) => {
+          this.users = users;
+          console.log('👥 Refreshed users for dialog:', users.length);
+        },
+        error: (error) => {
+          console.error('❌ Error refreshing users:', error);
+          this.notificationService.showError('Erreur lors du chargement des utilisateurs');
+        }
+      });
+    }
   }
 
   closeCreateDialog(): void {

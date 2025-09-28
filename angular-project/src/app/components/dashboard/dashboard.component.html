@@ -34,7 +34,17 @@
 
           <!-- User menu -->
           <div class="flex items-center space-x-2">
-            <span class="text-sm text-gray-700">Bienvenue, {{user?.username || 'Utilisateur'}}</span>
+            <div class="text-sm text-gray-700">
+              <span>Bienvenue, {{user?.username || 'Utilisateur'}}</span>
+              <span *ngIf="user?.roles" class="ml-2 px-2 py-1 text-xs rounded-full"
+                    [ngClass]="{
+                      'bg-red-100 text-red-800': permissionService.isAdmin(),
+                      'bg-blue-100 text-blue-800': permissionService.isBibliothecaire() && !permissionService.isAdmin(),
+                      'bg-green-100 text-green-800': permissionService.isLecteur() && !permissionService.isBibliothecaire() && !permissionService.isAdmin()
+                    }">
+                {{ permissionService.isAdmin() ? 'ADMIN' : permissionService.isBibliothecaire() ? 'BIBLIOTHECAIRE' : 'LECTEUR' }}
+              </span>
+            </div>
             <button
               (click)="handleLogout()"
               class="logout-btn"
@@ -57,7 +67,7 @@
         <div class="border-b border-gray-200">
           <nav class="-mb-px flex space-x-8">
             <button
-              *ngFor="let tab of tabs"
+              *ngFor="let tab of availableTabs"
               (click)="activeTab = tab.id"
               [class]="getTabClasses(tab.id)"
             >
@@ -109,13 +119,13 @@
               </div>
               <div class="card-content">
                 <div class="due-list" *ngIf="!loading && dueSoonEmprunts.length > 0">
-                  <div class="due-item" [ngClass]="getDueDateLabel(emprunt.dueDate, emprunt.empruntDate).class" *ngFor="let emprunt of dueSoonEmprunts">
+                  <div class="due-item" [ngClass]="getDueDateLabel(emprunt.dueDate || emprunt.dateRetour || emprunt.dateEcheance, emprunt.empruntDate || emprunt.dateEmprunt).class" *ngFor="let emprunt of dueSoonEmprunts">
                     <div class="due-details">
                       <p class="due-title">{{ emprunt.livre?.titre || 'Titre indisponible' }}</p>
                       <p class="due-user">{{ emprunt.user?.nom || emprunt.user?.name || 'Utilisateur inconnu' }}</p>
                     </div>
-                    <span class="due-badge" [ngClass]="getDueDateLabel(emprunt.dueDate, emprunt.empruntDate).class">
-                      {{ getDueDateLabel(emprunt.dueDate, emprunt.empruntDate).text }}
+                    <span class="due-badge" [ngClass]="getDueDateLabel(emprunt.dueDate || emprunt.dateRetour || emprunt.dateEcheance, emprunt.empruntDate || emprunt.dateEmprunt).class">
+                      {{ getDueDateLabel(emprunt.dueDate || emprunt.dateRetour || emprunt.dateEcheance, emprunt.empruntDate || emprunt.dateEmprunt).text }}
                     </span>
                   </div>
                 </div>
@@ -134,14 +144,36 @@
           </div>
         </div>
 
-        <!-- Books Tab -->
+        <!-- Books Tab - Accessible à tous les utilisateurs connectés -->
         <div *ngSwitchCase="'books'">
-          <app-book-manager></app-book-manager>
+          <ng-container *ngIf="permissionService.canViewBooks(); else noBookAccess">
+            <app-book-manager></app-book-manager>
+          </ng-container>
+          <ng-template #noBookAccess>
+            <div class="text-center py-12">
+              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              <h3 class="mt-2 text-sm font-medium text-gray-900">Accès restreint</h3>
+              <p class="mt-1 text-sm text-gray-500">Vous n'avez pas les permissions pour voir les livres.</p>
+            </div>
+          </ng-template>
         </div>
 
-        <!-- Users Tab -->
+        <!-- Users Tab - ADMIN et BIBLIOTHECAIRE uniquement -->
         <div *ngSwitchCase="'users'">
-          <app-user-manager></app-user-manager>
+          <ng-container *ngIf="permissionService.canManageUsers(); else noUserAccess">
+            <app-user-manager></app-user-manager>
+          </ng-container>
+          <ng-template #noUserAccess>
+            <div class="text-center py-12">
+              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              <h3 class="mt-2 text-sm font-medium text-gray-900">Accès restreint</h3>
+              <p class="mt-1 text-sm text-gray-500">Vous n'avez pas les permissions pour gérer les utilisateurs.</p>
+            </div>
+          </ng-template>
         </div>
 
         <!-- Emprunts Tab -->
@@ -158,51 +190,112 @@
   </div>
 
   <!-- Modal pour modifier la date de retour -->
-  <div *ngIf="showEditModal" class="modal-overlay" (click)="closeEditModal()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3 class="modal-title">Modifier la date de retour</h3>
-        <button class="modal-close-btn" (click)="closeEditModal()">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
-      </div>
+  <div *ngIf="showEditModal" class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+      <!-- Background overlay -->
+      <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" (click)="closeEditModal()"></div>
 
-      <div class="modal-body">
-        <div class="mb-4">
-          <p class="text-sm text-gray-600 mb-2">Livre: <strong>{{ selectedEmprunt?.livre?.titre }}</strong></p>
-          <p class="text-sm text-gray-600 mb-4">Emprunteur: <strong>{{ selectedEmprunt?.user?.nom || selectedEmprunt?.user?.name }}</strong></p>
+      <!-- Modal -->
+      <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+        <!-- Header -->
+        <div class="bg-white px-6 pt-6 pb-4 border-b border-gray-200">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-lg leading-6 font-medium text-gray-900">
+                Modifier la date de retour
+              </h3>
+              <p class="mt-1 text-sm text-gray-500">
+                Ajuster la date d'échéance pour ce prêt
+              </p>
+            </div>
+            <button
+              (click)="closeEditModal()"
+              class="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="dateRetour" class="form-label">Nouvelle date de retour</label>
-          <input
-            type="date"
-            id="dateRetour"
-            [(ngModel)]="newDateRetour"
-            class="form-input"
-            [disabled]="modalLoading"
-          />
-        </div>
-      </div>
+        <!-- Content -->
+        <div class="bg-white px-6 py-4">
+          <!-- Loading State -->
+          <div *ngIf="modalLoading" class="animate-pulse">
+            <div class="space-y-4">
+              <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+              <div class="h-10 bg-gray-200 rounded"></div>
+            </div>
+          </div>
 
-      <div class="modal-footer">
-        <button
-          class="btn btn-secondary"
-          (click)="closeEditModal()"
-          [disabled]="modalLoading"
-        >
-          Annuler
-        </button>
-        <button
-          class="btn btn-primary"
-          (click)="updateDateRetour()"
-          [disabled]="modalLoading || !newDateRetour"
-        >
-          <span *ngIf="modalLoading" class="loading-spinner"></span>
-          {{ modalLoading ? 'Modification...' : 'Modifier' }}
-        </button>
+          <!-- Form Content -->
+          <div *ngIf="!modalLoading">
+            <!-- Emprunt Details -->
+            <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+              <div class="flex items-start space-x-3">
+                <div class="flex-shrink-0 w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                  <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-gray-900">{{ selectedEmprunt?.livre?.titre || 'Livre non spécifié' }}</p>
+                  <p class="text-sm text-gray-500">Emprunté par {{ selectedEmprunt?.user?.nom || selectedEmprunt?.user?.name || 'Utilisateur inconnu' }}</p>
+                  <div class="mt-2 flex items-center space-x-2 text-xs text-gray-500">
+                    <span>ID: #{{ selectedEmprunt?.id }}</span>
+                    <span>•</span>
+                    <span>Date actuelle: {{ selectedEmprunt?.dueDate | date:'dd/MM/yyyy' }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Date Input -->
+            <div class="space-y-4">
+              <div>
+                <label for="dateRetour" class="block text-sm font-medium text-gray-700 mb-2">
+                  Nouvelle date de retour
+                </label>
+                <input
+                  type="date"
+                  id="dateRetour"
+                  [(ngModel)]="newDateRetour"
+                  class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  [disabled]="modalLoading"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="bg-gray-50 px-6 py-3 flex items-center justify-between">
+          <div class="text-sm text-gray-500">
+            <span *ngIf="newDateRetour" class="text-green-600">✓ Nouvelle date sélectionnée</span>
+          </div>
+          <div class="flex space-x-3">
+            <button
+              (click)="closeEditModal()"
+              [disabled]="modalLoading"
+              class="inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:text-sm disabled:opacity-50"
+            >
+              Annuler
+            </button>
+            <button
+              (click)="updateDateRetour()"
+              [disabled]="modalLoading || !newDateRetour"
+              class="inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:text-sm disabled:opacity-50"
+            >
+              <svg *ngIf="modalLoading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              {{ modalLoading ? 'Modification...' : 'Modifier' }}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>

@@ -2,6 +2,8 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
+import { PermissionService } from '../../services/permission.service';
 import { Book, BookFormData, Author, Category } from '../../models/book.model';
 import { AddBookFormComponent } from '../add-book-form/add-book-form.component';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
@@ -38,7 +40,11 @@ export class BookManagerComponent implements OnInit, OnDestroy {
     { value: 'partially_borrowed', label: 'Partiellement empruntés' }
   ];
 
-  constructor(private apiService: ApiService) {
+  constructor(
+    private apiService: ApiService,
+    private authService: AuthService,
+    public permissionService: PermissionService
+  ) {
     // Configurer le debounce pour la recherche
     this.searchSubject.pipe(
       debounceTime(300),
@@ -233,6 +239,10 @@ export class BookManagerComponent implements OnInit, OnDestroy {
   }
 
   handleAddBook(bookData: BookFormData) {
+    if (this.isLecteur()) {
+      console.warn('LECTEUR users cannot add books');
+      return;
+    }
     console.log('📝 Adding book with data:', bookData);
 
     this.apiService.addBook(bookData).subscribe({
@@ -254,42 +264,12 @@ export class BookManagerComponent implements OnInit, OnDestroy {
     });
   }
 
-  addExampleBook() {
-    const exampleBookData = {
-      titre: "Le Petit Prince - Édition illustrée",
-      isbn: "978-2-07-040857-4",
-      status: "AVAILABLE" as const,
-      datePublication: "1943-04-06T00:00:00",
-      nombrePages: 120,
-      copiesTotal: 3,
-      copiesAvailable: 3,
-      resume: "L'histoire d'un petit prince qui voyage de planète en planète à la recherche de l'amitié et du sens de la vie. Édition illustrée avec de nouvelles images.",
-      categorieId: 2,
-      auteurIds: [1, 3]
-    };
-
-    console.log('📝 Adding example book with data:', exampleBookData);
-
-    this.apiService.addLivreWithExampleSchema(exampleBookData).subscribe({
-      next: (response) => {
-        console.log('✅ Example book added successfully:', response);
-        if (response.data && !response.error) {
-          this.books.unshift(response.data);
-          alert('Exemple de livre ajouté avec succès !');
-          this.loadBooks(); // Refresh the list
-        } else {
-          console.error('Failed to add example book:', response.error);
-          alert('Erreur lors de l\'ajout de l\'exemple de livre');
-        }
-      },
-      error: (error) => {
-        console.error('❌ Error adding example book:', error);
-        alert('Erreur lors de l\'ajout de l\'exemple de livre: ' + (error.message || 'Erreur inconnue'));
-      }
-    });
-  }
 
   handleDeleteBook(bookId: number) {
+    if (this.isLecteur()) {
+      console.warn('LECTEUR users cannot delete books');
+      return;
+    }
     if (confirm('Êtes-vous sûr de vouloir supprimer ce livre ?')) {
       this.apiService.deleteBook(bookId.toString()).subscribe({
         next: (response) => {
@@ -347,6 +327,10 @@ export class BookManagerComponent implements OnInit, OnDestroy {
   }
 
   openEditModal(book: Book) {
+    if (this.isLecteur()) {
+      console.warn('LECTEUR users cannot edit books');
+      return;
+    }
     this.selectedBook = { ...book };
     // datePublication is already a string, so we can use it directly
     this.editBookDate = book.datePublication || '';
@@ -363,6 +347,10 @@ export class BookManagerComponent implements OnInit, OnDestroy {
   }
 
   handleEditBook() {
+    if (this.isLecteur()) {
+      console.warn('LECTEUR users cannot edit books');
+      return;
+    }
     if (!this.selectedBook) return;
 
     this.editLoading = true;
@@ -416,6 +404,10 @@ export class BookManagerComponent implements OnInit, OnDestroy {
         this.editLoading = false;
       }
     });
+  }
+
+  isLecteur(): boolean {
+    return this.permissionService.isLecteur() && !this.permissionService.canManageBooks();
   }
 
 }

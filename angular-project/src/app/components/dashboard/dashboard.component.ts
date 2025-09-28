@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ApiService } from '../../services/api.service';
 import { NotificationService } from '../../services/notification.service';
+import { PermissionService } from '../../services/permission.service';
 import { User } from '../../models/user.model';
 import { StatsCardsComponent } from '../stats-cards/stats-cards.component';
 import { RecentActivityComponent } from '../recent-activity/recent-activity.component';
@@ -13,6 +14,7 @@ import { UserManagerComponent } from '../user-manager/user-manager.component';
 import { EmpruntManagerComponent } from '../emprunt-manager/emprunt-manager.component';
 import { NotificationBannerComponent } from '../notification-banner/notification-banner.component';
 import { RapportComponent } from '../rapports/rapport.component';
+import { HasPermissionDirective } from '../../directives/has-permission.directive';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -27,7 +29,8 @@ import { environment } from '../../../environments/environment';
     UserManagerComponent,
     EmpruntManagerComponent,
     NotificationBannerComponent,
-    RapportComponent
+    RapportComponent,
+    HasPermissionDirective
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
@@ -45,18 +48,25 @@ export class DashboardComponent implements OnInit {
   modalLoading = false;
 
   tabs = [
-    { id: 'overview', label: 'Vue d\'ensemble' },
-    { id: 'books', label: 'Livres' },
-    { id: 'users', label: 'Utilisateurs' },
-    { id: 'emprunts', label: 'Prêts' },
-    { id: 'reports', label: 'Rapports' }
+    { id: 'overview', label: 'Vue d\'ensemble', permission: null },
+    { id: 'books', label: 'Livres', permission: 'canViewBooks' },
+    { id: 'users', label: 'Utilisateurs', permission: 'canManageUsers' },
+    { id: 'emprunts', label: 'Prêts', permission: null },
+    { id: 'reports', label: 'Rapports', permission: null }
   ];
+
+  get availableTabs() {
+    return this.tabs.filter(tab =>
+      !tab.permission || this.permissionService.getPermissions()[tab.permission as keyof ReturnType<typeof this.permissionService.getPermissions>]
+    );
+  }
 
   constructor(
     private authService: AuthService,
     private apiService: ApiService,
     private router: Router,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    public permissionService: PermissionService
   ) {}
 
   ngOnInit() {
@@ -163,8 +173,20 @@ export class DashboardComponent implements OnInit {
     this.apiService.getDueSoonEmprunts().subscribe({
       next: (response) => {
         console.log('✅ Due Soon Emprunts Response:', response);
-        this.dueSoonEmprunts = response.data || [];
-        console.log('📊 Due Soon Emprunts count:', this.dueSoonEmprunts.length);
+        this.dueSoonEmprunts = (response.data || []).slice(0, 4); // Limiter à 4 éléments
+        console.log('📊 Due Soon Emprunts count (limited to 4):', this.dueSoonEmprunts.length);
+
+        // Log des données détaillées pour debugging
+        if (this.dueSoonEmprunts.length > 0) {
+          console.log('📋 Premier emprunt détail:', this.dueSoonEmprunts[0]);
+          console.log('📅 Propriétés de date du premier emprunt:', {
+            dueDate: this.dueSoonEmprunts[0].dueDate,
+            empruntDate: this.dueSoonEmprunts[0].empruntDate,
+            dateRetour: this.dueSoonEmprunts[0].dateRetour,
+            dateEmprunt: this.dueSoonEmprunts[0].dateEmprunt
+          });
+        }
+
         this.loading = false;
       },
       error: (error) => {
@@ -178,21 +200,50 @@ export class DashboardComponent implements OnInit {
   }
 
   getDueDateLabel(dueDate: Date | string, empruntDate: Date | string): { text: string, class: string } {
-    if (!dueDate || !empruntDate) {
-      return { text: 'Date non définie', class: 'error' };
+    console.log('📅 getDueDateLabel called with:', { dueDate, empruntDate, dueDateType: typeof dueDate, empruntDateType: typeof empruntDate });
+
+    if (!dueDate) {
+      console.warn('❌ No dueDate provided');
+      return { text: 'Date d\'échéance manquante', class: 'error' };
     }
 
     const today = new Date();
-    const dueDateObj = new Date(dueDate);
-    const borrowDateObj = new Date(empruntDate);
+    let dueDateObj: Date;
 
-    // Vérifier si les dates sont valides
-    if (isNaN(dueDateObj.getTime()) || isNaN(borrowDateObj.getTime())) {
-      return { text: 'Date invalide', class: 'error' };
+    // Essayer de parser la date avec différents formats
+    if (typeof dueDate === 'string') {
+      // Essayer plusieurs formats de date
+      dueDateObj = new Date(dueDate);
+
+      // Si la première tentative échoue, essayer d'autres formats
+      if (isNaN(dueDateObj.getTime())) {
+        // Essayer format DD/MM/YYYY
+        const dateParts = dueDate.split('/');
+        if (dateParts.length === 3) {
+          dueDateObj = new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0]));
+        }
+
+        // Essayer format YYYY-MM-DD
+        if (isNaN(dueDateObj.getTime()) && dueDate.includes('-')) {
+          dueDateObj = new Date(dueDate + 'T00:00:00');
+        }
+      }
+    } else {
+      dueDateObj = new Date(dueDate);
+    }
+
+    console.log('📅 Parsed dueDate:', dueDateObj, 'Valid:', !isNaN(dueDateObj.getTime()));
+
+    // Vérifier si la date est valide
+    if (isNaN(dueDateObj.getTime())) {
+      console.error('❌ Invalid dueDate after parsing:', dueDate);
+      return { text: 'Format de date invalide', class: 'error' };
     }
 
     const diffTime = dueDateObj.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    console.log('📊 Date calculation:', { today, dueDateObj, diffTime, diffDays });
 
     if (diffDays < 0) {
       return { text: `Retard de ${Math.abs(diffDays)} jour${Math.abs(diffDays) > 1 ? 's' : ''}`, class: 'overdue' };

@@ -16,7 +16,7 @@ export class LoginComponent {
   activeTab: 'login' | 'signup' = 'login';
 
   // Login form
-  loginEmail = '';
+  loginIdentifier = '';
   loginPassword = '';
   showLoginPassword = false;
 
@@ -45,7 +45,7 @@ export class LoginComponent {
   }
 
   clearForms() {
-    this.loginEmail = '';
+    this.loginIdentifier = '';
     this.loginPassword = '';
     this.signupUsername = '';
     this.signupEmail = '';
@@ -57,7 +57,7 @@ export class LoginComponent {
   }
 
   useDefaultCredentials() {
-    this.loginEmail = 'user@default.fr';
+    this.loginIdentifier = 'user@default.fr';
     this.loginPassword = 'user123';
   }
 
@@ -68,8 +68,10 @@ export class LoginComponent {
     this.errorMessage = '';
 
     try {
+      // Determine if identifier is email or username
+      const isEmail = this.loginIdentifier.includes('@');
       const credentials: AuthCredentials = {
-        email: this.loginEmail,
+        ...(isEmail ? { email: this.loginIdentifier } : { username: this.loginIdentifier }),
         password: this.loginPassword
       };
 
@@ -102,7 +104,7 @@ export class LoginComponent {
         prenom: this.prenom,
         telephone: this.telephone,
         adresse: this.adresse,
-        role: 'LECTEUR',
+        role: 'ROLE_LECTEUR',
         membershipType: 'Standard',
         booksEmpruntes: 0,
         memberSince: new Date().toISOString(),
@@ -115,7 +117,7 @@ export class LoginComponent {
         this.errorMessage = result.error;
       } else {
         // Auto-login after successful signup
-        this.loginEmail = this.signupEmail;
+        this.loginIdentifier = this.signupEmail;
         this.loginPassword = this.signupPassword;
         await this.handleLoginSubmit();
       }
@@ -151,7 +153,7 @@ export class LoginComponent {
 
   // Renseigne automatiquement les identifiants du manager
   useManagerCredentials() {
-    this.loginEmail = 'manager@bibliotheque.fr';
+    this.loginIdentifier = 'manager@bibliotheque.fr';
     this.loginPassword = 'manager123';
   }
 

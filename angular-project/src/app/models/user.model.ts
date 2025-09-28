@@ -6,7 +6,8 @@ export interface User {
 }
 
 export interface AuthCredentials {
-  email: string; // Utilisé comme username dans l'API
+  email?: string;
+  username?: string;
   password: string;
 }
 
@@ -16,7 +17,7 @@ export interface SignUpCredentials extends AuthCredentials {
   prenom: string;
   telephone: string;
   adresse: string;
-  role?: 'ADMIN' | 'BIBLIOTHECAIRE' | 'LECTEUR';
+  role?: 'ROLE_ADMIN' | 'ROLE_BIBLIOTHECAIRE' | 'ROLE_LECTEUR';
   membershipType?: 'Admin' | 'Premium' | 'Standard';
   booksEmpruntes?: number;
   memberSince?: string;
@@ -32,7 +33,7 @@ export interface LibraryUser {
   prenom: string;
   telephone: string;
   adresse: string;
-  role: 'ADMIN' | 'BIBLIOTHECAIRE' | 'LECTEUR';
+  role: 'ROLE_ADMIN' | 'ROLE_BIBLIOTHECAIRE' | 'ROLE_LECTEUR';
   isActive: boolean;
   membershipType: 'Admin' | 'Premium' | 'Standard';
   booksEmpruntes: number;

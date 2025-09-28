@@ -78,7 +78,7 @@ export class AuthService {
         tokenType: string;
         accessToken: string;
       }>(`${environment.api.baseUrl}/auth/signin`, {
-        username: credentials.email, // Utilisation du username comme demandé par votre API
+        username: credentials.username || credentials.email,
         password: credentials.password
       }).toPromise();
 
@@ -87,7 +87,7 @@ export class AuthService {
           id: response.id.toString(),
           username: response.username,
           email: response.email,
-          roles: response.roles
+          roles: response.roles || []
         };
 
         localStorage.setItem(this.tokenKey, response.accessToken);

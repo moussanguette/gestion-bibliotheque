@@ -20,6 +20,8 @@ export class UserManagerComponent implements OnInit, OnDestroy {
   showAddForm = false;
   selectedFilter = 'all';
   private searchSubject = new Subject<string>();
+  private allUsers: LibraryUser[] = [];
+  private dataLoaded = false;
 
   // Modal properties
   showViewModal = false;
@@ -52,67 +54,74 @@ export class UserManagerComponent implements OnInit, OnDestroy {
   }
 
   private performSearch(searchTerm: string) {
-    this.loading = true;
-    // Use getUsers and filter locally since searchUsers doesn't exist
-    this.apiService.getUsers().subscribe({
-      next: (response) => {
-         console.log('Users API response:', response);
-         let users: LibraryUser[] = [];
+    if (!this.dataLoaded) {
+      // Si les données ne sont pas encore chargées, on charge d'abord
+      this.loadUsers().then(() => {
+        this.filterUsers(searchTerm);
+      }).catch(() => {
+        // Gérer l'erreur si nécessaire
+      });
+      return;
+    }
 
-         // Handle different response structures
-         if (response.data && Array.isArray(response.data)) {
-           users = response.data;
-         } else if (Array.isArray(response)) {
-           users = response;
-         }
+    this.filterUsers(searchTerm);
+  }
 
-        // Filter locally if search term provided
-        if (searchTerm && searchTerm.trim()) {
-          const search = searchTerm.toLowerCase().trim();
-          users = users.filter(user =>
-            `${user.prenom || ''} ${user.nom || ''}`.toLowerCase().includes(search) ||
-            (user.email || '').toLowerCase().includes(search) ||
-            (user.telephone && user.telephone.includes(search))
-          );
-        }
+  private filterUsers(searchTerm: string) {
+    let users = [...this.allUsers];
 
-        this.users = users;
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Error loading users:', error);
-        this.users = [];
-        this.loading = false;
-      }
-    });
+    // Filter locally if search term provided
+    if (searchTerm && searchTerm.trim()) {
+      const search = searchTerm.toLowerCase().trim();
+      users = users.filter(user =>
+        `${user.prenom || ''} ${user.nom || ''}`.toLowerCase().includes(search) ||
+        (user.email || '').toLowerCase().includes(search) ||
+        (user.telephone && user.telephone.includes(search))
+      );
+    }
+
+    this.users = users;
   }
 
   ngOnInit() {
     this.loadUsers();
   }
 
-  loadUsers() {
-    this.loading = true;
-    this.apiService.getUsers().subscribe({
-      next: (response) => {
-         console.log('Load users API response:', response);
-         let users: LibraryUser[] = [];
-
-         // Handle response.data
-         if (response.data && Array.isArray(response.data)) {
-           users = response.data;
-         } else if (Array.isArray(response)) {
-           users = response;
-         }
-
-        this.users = users;
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Error loading users:', error);
-        this.users = [];
-        this.loading = false;
+  loadUsers(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this.dataLoaded && this.allUsers.length > 0) {
+        this.users = [...this.allUsers];
+        resolve();
+        return;
       }
+
+      this.loading = true;
+      this.apiService.getUsers().subscribe({
+        next: (response) => {
+          // console.log('Load users API response:', response);
+          let users: LibraryUser[] = [];
+
+          // Handle response.data
+          if (response.data && Array.isArray(response.data)) {
+            users = response.data;
+          } else if (Array.isArray(response)) {
+            users = response;
+          }
+
+          this.allUsers = users;
+          this.users = [...users];
+          this.dataLoaded = true;
+          this.loading = false;
+          resolve();
+        },
+        error: (error) => {
+          console.error('Error loading users:', error);
+          this.users = [];
+          this.allUsers = [];
+          this.loading = false;
+          reject(error);
+        }
+      });
     });
   }
 
@@ -132,7 +141,7 @@ export class UserManagerComponent implements OnInit, OnDestroy {
       prenom: prenom,
       telephone: userData.phoneNumber || '',
       adresse: userData.address || '',
-      role: 'LECTEUR',
+      role: 'ROLE_LECTEUR',
       isActive: userData.status === 'active',
       membershipType: 'Standard',
       booksEmpruntes: 0,
